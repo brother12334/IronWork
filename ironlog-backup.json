@@ -427,9 +427,42 @@
        "done": true
       }
      ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "12",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Leg Raises",
+     "sets": [
+      {
+       "weight": "",
+       "reps": "13",
+       "rpe": "8.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch (round 2)",
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
     }
    ]
   }
  ],
- "savedAt": 1783906139361
+ "savedAt": 1783906768731
 }
