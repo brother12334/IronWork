@@ -81,6 +81,7 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
 .ex-head b{font-size:17px}
 .ex-target{color:var(--dim);font-size:13px;font-family:var(--mono);white-space:nowrap}
 .ex-note{color:var(--faint);font-size:12.5px;margin-top:-4px;margin-bottom:8px}
+.ex-last{color:var(--dim);font-size:13px;margin:-2px 0 9px;font-family:var(--mono)}
 .alt-badge{
   display:inline-block;font:11.5px var(--mono);color:var(--bg);background:var(--dim);
   border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle;
@@ -176,7 +177,71 @@ nav button.on{color:var(--text);background:var(--card2)}
 .empty{color:var(--faint);text-align:center;padding:34px 10px;font-size:15px}
 .danger{color:var(--bad)}
 a{color:var(--text)}
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* ================= ANIMATIONS ================= */
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+#app>.card{animation:slideUp .5s cubic-bezier(.16,1,.3,1) both}
+#app>.card:nth-of-type(2){animation-delay:.06s}
+#app>.card:nth-of-type(3){animation-delay:.12s}
+#app>.card:nth-of-type(4){animation-delay:.18s}
+#app>.card:nth-of-type(5){animation-delay:.24s}
+#app>.card:nth-of-type(6){animation-delay:.3s}
+#app>.card:nth-of-type(7){animation-delay:.36s}
+#app>.card:nth-of-type(n+8){animation-delay:.42s}
+
+@keyframes ringPulse{0%{transform:scale(.8);opacity:.9}75%{transform:scale(1.3);opacity:0}100%{transform:scale(1.3);opacity:0}}
+.plate{overflow:visible}
+.plate.cur::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:3px solid rgba(255,255,255,.55);animation:ringPulse 1.7s ease-out infinite;pointer-events:none}
+
+@keyframes bounceIn{0%{transform:scale(0)}55%{transform:scale(1.45)}100%{transform:scale(1)}}
+.pcheck{animation:bounceIn .5s cubic-bezier(.34,1.56,.64,1) both}
+
+@keyframes pop{0%{transform:scale(.6)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+.set .chk.on{animation:pop .32s cubic-bezier(.34,1.56,.64,1)}
+
+.btn{transition:transform .12s}
+.btn:active{transform:scale(.96)}
+@keyframes btnGlow{0%,100%{box-shadow:0 0 0 0 rgba(236,234,228,0)}50%{box-shadow:0 0 26px 3px rgba(236,234,228,.4)}}
+#startBtn{animation:btnGlow 2.6s ease-in-out infinite}
+
+@keyframes dotPulse{50%{transform:scale(1.6);opacity:.55}}
+.syncdot.pulse{animation:dotPulse .9s ease-in-out infinite}
+
+@keyframes shakeX{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}50%{transform:translateX(-4px)}}
+body.shake{animation:shakeX .55s both}
+
+#celebrate{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden}
+@keyframes plateSlam{
+  0%{transform:translate(-50%,-170vh) scale(1.6) rotate(-30deg)}
+  58%{transform:translate(-50%,-50%) scale(.92) rotate(2deg)}
+  78%{transform:translate(-50%,-53%) scale(1.06) rotate(-1deg)}
+  100%{transform:translate(-50%,-50%) scale(1) rotate(0)}
+}
+.slam{
+  position:absolute;left:50%;top:36%;width:min(74vw,340px);aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-weight:700;font-size:min(20vw,92px);letter-spacing:.06em;color:var(--bg);
+  box-shadow:inset 0 0 0 10px rgba(0,0,0,.28), inset 0 0 0 28px rgba(255,255,255,.08), 0 0 90px 18px rgba(255,255,255,.25);
+  animation:plateSlam .6s cubic-bezier(.24,1.3,.4,1) both;
+}
+@keyframes textPop{0%{opacity:0;transform:scale(.5)}100%{opacity:1;transform:scale(1)}}
+.cele-text{
+  position:absolute;left:12px;right:12px;top:calc(36% + min(40vw,190px));text-align:center;
+  font-family:var(--disp);font-weight:700;font-size:min(11vw,46px);letter-spacing:.09em;text-transform:uppercase;
+  color:#fff;text-shadow:0 0 34px rgba(255,255,255,.55), 0 3px 0 rgba(0,0,0,.35);
+  animation:textPop .5s .28s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes confFall{to{transform:translateY(118vh) rotate(760deg)}}
+.confetto{position:absolute;top:-36px;animation:confFall linear both;will-change:transform}
+
+@keyframes prUp{0%{opacity:0;transform:translateY(4px) scale(.5)}18%{opacity:1;transform:translateY(-10px) scale(1.25)}100%{opacity:0;transform:translateY(-56px) scale(1)}}
+.pr-float{
+  position:fixed;z-index:99;pointer-events:none;
+  font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:.06em;color:var(--arms);
+  text-shadow:0 0 18px rgba(232,182,44,.9);animation:prUp 1.25s ease-out both;
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -304,16 +369,31 @@ function migrate(){
   }
   if(S.sync && S.sync.repo===undefined){ S.sync.repo=""; S.sync.branch="main"; S.sync.lastRepo=null; save(); }
   if(!Array.isArray(S.cycleDone)) S.cycleDone = [];
-  if(!S.cycleStart){
-    // anchor the current cycle to this week's Monday, then derive checkmarks from history
-    const d = new Date();
-    const day = (d.getDay()+6)%7; // days since Monday
-    d.setHours(0,0,0,0);
-    d.setDate(d.getDate()-day);
-    S.cycleStart = d.getTime();
+  if(!S.cycleStart || !S.cycleV2){
+    S.cycleStart = inferCycleStart();
+    S.cycleV2 = true;
     save();
   }
   recomputeCycle(false);
+}
+function inferCycleStart(){
+  // walk history backwards; sessions still fitting in one cycle belong to the current one
+  const cap = {};
+  ROTATION.forEach(id=>{ cap[id] = (cap[id]||0)+1; });
+  const now = Date.now();
+  let anchor = null, total = 0;
+  const sess = [...S.sessions].sort((a,b)=>b.startedAt-a.startedAt);
+  for(const s of sess){
+    if(now - s.startedAt > 9*24*3600e3) break;   // older than ~9 days → previous cycle
+    if(!(s.workoutId in cap)) continue;
+    if(cap[s.workoutId] === 0) break;            // that day is already full → cycle boundary
+    if(total >= ROTATION.length) break;
+    cap[s.workoutId]--; total++;
+    anchor = s.startedAt;
+  }
+  if(anchor != null) return anchor;
+  const d = new Date(); d.setHours(0,0,0,0);
+  return d.getTime();
 }
 function save(){
   S.savedAt = Date.now();
@@ -327,6 +407,57 @@ const todayStr = () => new Date().toLocaleDateString("en-CA");
 const fmtDate = d => new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2600); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ---------- celebrations ---------- */
+const DAY_HEX = {chest:"#e05248", back:"#4a82e0", arms:"#e8b62c", shoulders:"#46a85c", legs:"#e9e5db"};
+const PALETTE = Object.values(DAY_HEX);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function reducedMotion(){ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+function celebrate(kind, wid){
+  if(reducedMotion()) return;
+  const old = document.getElementById("celebrate");
+  if(old) old.remove();
+  const el = document.createElement("div");
+  el.id = "celebrate";
+  const isCycle = kind==="cycle";
+  const color = isCycle ? "#eceae4" : (DAY_HEX[wid] || "#eceae4");
+  const plateTxt = isCycle ? "7/7" : (META[wid] ? META[wid].short : "GG");
+  const text = isCycle
+    ? "FULL CYCLE COMPLETE 🔁"
+    : pick(["WORKOUT CRUSHED 💪","IRON CONQUERED 🏋️","ANOTHER ONE DOWN 🔥","STRONGER THAN YESTERDAY ⚡","PLATES DON'T LIFT THEMSELVES 😤"]);
+  el.innerHTML = `<div class="slam" style="background:${color}">${plateTxt}</div><div class="cele-text">${text}</div>`;
+  // confetti storm — double for a full cycle
+  const n = isCycle ? 110 : 60;
+  for(let i=0;i<n;i++){
+    const c = document.createElement("div");
+    c.className = "confetto";
+    const size = 7+Math.random()*9;
+    c.style.left = (Math.random()*100)+"vw";
+    c.style.width = size+"px";
+    c.style.height = (size*(0.7+Math.random()))+"px";
+    c.style.background = pick(PALETTE);
+    c.style.borderRadius = Math.random()<0.35 ? "50%" : "3px";
+    c.style.animationDuration = (1.7+Math.random()*1.4)+"s";
+    c.style.animationDelay = (Math.random()*0.6)+"s";
+    c.style.opacity = 0.75+Math.random()*0.25;
+    el.appendChild(c);
+  }
+  document.body.appendChild(el);
+  document.body.classList.add("shake");
+  setTimeout(()=>document.body.classList.remove("shake"), 650);
+  setTimeout(()=>el.remove(), 3400);
+}
+function prFloat(anchor){
+  if(reducedMotion()) return;
+  const r = anchor.getBoundingClientRect();
+  const p = document.createElement("div");
+  p.className = "pr-float";
+  p.textContent = "PR! 🔥";
+  p.style.left = Math.max(8, r.left + r.width/2 - 34) + "px";
+  p.style.top = (r.top - 6) + "px";
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(), 1350);
+}
 function rpeTxt(v){ return v ? "RPE "+v : ""; }
 
 /* auto-sync machinery */
@@ -340,7 +471,10 @@ function syncDot(){
 function setSyncStatus(st){
   SYNC_ST = st;
   const d = document.querySelector(".syncdot");
-  if(d) d.style.background = st==="ok" ? "var(--ok)" : st==="err" ? "var(--bad)" : "var(--faint)";
+  if(d){
+    d.style.background = st==="ok" ? "var(--ok)" : st==="err" ? "var(--bad)" : "var(--faint)";
+    d.classList.toggle("pulse", st==="pending");
+  }
 }
 function queueSync(){
   if(!S.sync.token || !S.sync.gistId) return;
@@ -369,17 +503,29 @@ function resolvedProgram(wid){
   const fin = (S.program.finisher||[]).map(e=>({chosen:e, other:null, isFinisher:true}));
   return main.concat(fin);
 }
-function lastSetsFor(workoutId, exName){
+function lastEntryFor(workoutId, exName){
   // same-day sessions first (best comparison), then any session (covers the everyday finisher)
   for(let pass=0; pass<2; pass++){
     for(let i=S.sessions.length-1;i>=0;i--){
       const s = S.sessions[i];
       if(pass===0 && s.workoutId!==workoutId) continue;
       const e = s.entries.find(en=>en.name===exName);
-      if(e) return e.sets;
+      if(e) return {sets:e.sets, date:s.date};
     }
   }
   return null;
+}
+function lastSetsFor(workoutId, exName){
+  const l = lastEntryFor(workoutId, exName);
+  return l ? l.sets : null;
+}
+function lastLine(workoutId, exName){
+  const l = lastEntryFor(workoutId, exName);
+  if(!l) return null;
+  const sets = l.sets.filter(st=>st.reps||st.weight);
+  if(!sets.length) return null;
+  const d = new Date(l.date+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  return "Last ("+d+"):  "+sets.map(fmtSetShort).join("  ·  ");
 }
 function fmtSet(st){
   if(!st) return "—";
@@ -440,15 +586,15 @@ function viewToday(){
   let finLabeled = false;
   resolvedProgram(wid).forEach(({chosen:e, other, isFinisher})=>{
     if(isFinisher && !finLabeled){ h += `<div class="fin-label">Finisher — every workout</div>`; finLabeled = true; }
-    const last = lastSetsFor(wid, e.name);
-    const lastTop = last ? fmtSet(bestSet(last)) : null;
+    const ll = lastLine(wid, e.name);
     h += `<div class="ex-head"><b>${esc(e.name)}${other?'<span class="alt-badge">⇄</span>':''}</b><span class="ex-target">${e.sets}×${esc(e.reps)}${e.rpe?' · <span class="rpe-help" title="Tap for what RPE means">'+esc(rpeTxt(e.rpe))+'</span>':""}</span></div>`;
+    if(ll) h += `<div class="ex-last num">${esc(ll)}</div>`;
     let subBits = [];
-    if(lastTop) subBits.push('last top set: <span class="num">'+esc(lastTop)+'</span>');
-    else subBits.push('no sessions logged yet');
+    if(!ll) subBits.push('no sessions logged yet');
     if(other) subBits.push('alternates with '+esc(other.name)+' next '+m.name.toLowerCase()+' day');
     if(e.note) subBits.push(esc(e.note));
-    h += `<div class="sub" style="margin:-2px 0 12px">${subBits.join(' · ')}</div>`;
+    if(subBits.length) h += `<div class="sub" style="margin:-2px 0 12px">${subBits.join(' · ')}</div>`;
+    else h += `<div style="margin-bottom:12px"></div>`;
   });
   h += `</div>`;
 
@@ -481,12 +627,13 @@ function viewActiveSession(){
   a.entries.forEach((en,ei)=>{
     if(en.fin && !finLab){ h += `<div class="fin-label">Finisher</div>`; finLab = true; }
     const last = lastSetsFor(a.workoutId, en.name);
+    const ll = lastLine(a.workoutId, en.name);
     h += `<div class="card ex">
       <div class="ex-head"><b>${esc(en.name)}</b><span class="ex-target">${en.sets.length}×${esc(en.reps||"")}${en.rpe?' · <span class="rpe-help" title="Tap for what RPE means">'+esc(rpeTxt(en.rpe))+'</span>':""}</span></div>`;
+    if(ll) h += `<div class="ex-last num">${esc(ll)}</div>`;
     if(en.note) h += `<div class="ex-note">${esc(en.note)}</div>`;
     h += `<div class="set-labels"><span>set</span><span>lbs</span><span>reps</span><span class="rpe-help" title="Tap for what RPE means">rpe ⓘ</span><span>✓</span></div>`;
     en.sets.forEach((st,si)=>{
-      const lastS = last && last[si] ? fmtSet(last[si]) : null;
       h += `<div class="set">
         <span class="idx">${si+1}</span>
         <input inputmode="decimal" data-e="${ei}" data-s="${si}" data-f="weight" value="${st.weight??""}" placeholder="${last&&last[si]&&last[si].weight!=null&&last[si].weight!==""?last[si].weight:"lbs"}">
@@ -494,7 +641,6 @@ function viewActiveSession(){
         <select data-e="${ei}" data-s="${si}" data-f="rpe">${rpeOptions(st.rpe)}</select>
         <button class="chk ${st.done?"on":""}" data-e="${ei}" data-s="${si}" data-f="done">✓</button>
       </div>`;
-      if(lastS) h += `<div class="set"><span></span><div class="last">last: ${esc(lastS)}</div></div>`;
     });
     h += `<div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn ghost small" data-addset="${ei}">+ set</button>
@@ -681,6 +827,11 @@ function bind(){
         const rIn = row.querySelector('[data-f="reps"]');
         if(!st.weight && wIn.placeholder && wIn.placeholder!=="lbs"){ st.weight=wIn.placeholder; wIn.value=wIn.placeholder; }
         if(!st.reps && rIn.placeholder && rIn.placeholder!=="reps"){ st.reps=rIn.placeholder; rIn.value=rIn.placeholder; }
+        // PR spark: heavier than the same set last time?
+        const lastArr = lastSetsFor(S.active.workoutId, S.active.entries[e].name);
+        const lastW = lastArr && lastArr[s] ? parseFloat(lastArr[s].weight) : NaN;
+        const curW = parseFloat(st.weight);
+        if(!isNaN(curW) && !isNaN(lastW) && curW > lastW) prFloat(el);
       }
       el.classList.toggle("on", st.done);
       save();
@@ -775,11 +926,13 @@ function finishWorkout(){
   a.entries.forEach(e=>{ e.sets = e.sets.filter(st=>st.done || st.reps || st.weight); });
   a.entries = a.entries.filter(e=>e.sets.length);
   a.finishedAt = Date.now();
+  const wid = a.workoutId;
   S.sessions.push({id:a.id, workoutId:a.workoutId, date:a.date, startedAt:a.startedAt, finishedAt:a.finishedAt, entries:a.entries});
   S.active = null;
-  recomputeCycle(true);
+  const cycleFinished = recomputeCycle(true);
   S.override = null;
   save(); render();
+  celebrate(cycleFinished ? "cycle" : "workout", wid);
   toast("Workout saved 💪");
   if(S.sync.gistId) syncNow(false);
   if(S.sync.repo) repoBackup(false);
@@ -800,6 +953,8 @@ function recomputeCycle(announce){
     S.cycleStart = Date.now();
     S.cycleDone = [];
     if(announce) toast("Cycle complete — starting a fresh one 🔁");
+    save();
+    return true;
   } else {
     S.cycleDone = done;
   }
@@ -811,6 +966,7 @@ function recomputeCycle(announce){
     }
   }
   save();
+  return false;
 }
 function openPicker(){
   let h = `<h3>Pick today's workout</h3><div class="picker">`;
