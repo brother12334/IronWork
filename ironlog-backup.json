@@ -213,7 +213,7 @@
   "finisher": [
    {
     "name": "Cable Ab Crunch",
-    "sets": 1,
+    "sets": 2,
     "reps": "10-12",
     "rpe": "9-10",
     "weight": 150,
@@ -226,14 +226,6 @@
     "rpe": "9-10",
     "weight": null,
     "note": "bodyweight"
-   },
-   {
-    "name": "Cable Ab Crunch (round 2)",
-    "sets": 1,
-    "reps": "10-12",
-    "rpe": "9-10",
-    "weight": 150,
-    "note": ""
    }
   ]
  },
@@ -449,9 +441,20 @@
        "done": true
       }
      ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "13",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
     }
    ]
   }
  ],
- "savedAt": 1783906896017
+ "savedAt": 1783907469017
 }
