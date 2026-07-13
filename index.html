@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/png" href="images/Bell.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#131315">
@@ -46,7 +45,14 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
   box-shadow:inset 0 0 0 4px rgba(0,0,0,.28), inset 0 0 0 11px rgba(255,255,255,.06);
   opacity:.34;transition:opacity .15s, transform .15s;
 }
-.plate.done{opacity:.75}
+.plate.done{opacity:.85}
+.pcheck{
+  position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;
+  background:var(--ok);color:#0d1a10;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--bg);
+}
+.cycle-row{display:flex;justify-content:space-between;align-items:center;margin:26px 2px 0;color:var(--faint);font-size:12px}
+.cycle-row button{background:none;border:none;color:var(--faint);font:11px var(--mono);text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;padding:4px}
 .plate.cur{opacity:1;transform:scale(1.12);box-shadow:inset 0 0 0 4px rgba(0,0,0,.28), inset 0 0 0 11px rgba(255,255,255,.06), 0 0 0 2px var(--bg), 0 0 0 4px var(--text)}
 .plate small{position:absolute;bottom:-18px;left:0;right:0;text-align:center;color:var(--faint);font:10px var(--mono);letter-spacing:0}
 .plates-wrap{margin-bottom:30px}
@@ -297,6 +303,11 @@ function migrate(){
     }
   }
   if(S.sync && S.sync.repo===undefined){ S.sync.repo=""; S.sync.branch="main"; S.sync.lastRepo=null; save(); }
+  if(!Array.isArray(S.cycleDone)){
+    // seed from the old pointer-based assumption: slots before the pointer were done
+    S.cycleDone = Array.from({length:S.pointer||0}, (_,i)=>i);
+    save();
+  }
 }
 function save(){
   S.savedAt = Date.now();
@@ -391,10 +402,13 @@ function plateStrip(){
   let html = '<div class="plates-wrap"><div class="plates">';
   ROTATION.forEach((id,i)=>{
     const m = META[id];
-    const cls = "plate" + (i===cur?" cur":"") + (i<cur?" done":"");
-    html += `<button class="${cls}" data-slot="${i}" style="background:${m.color}" aria-label="Slot ${i+1}: ${m.name}">${m.short}<small>${i+1}</small></button>`;
+    const done = S.cycleDone.includes(i);
+    const cls = "plate" + (i===cur?" cur":"") + (done?" done":"");
+    html += `<button class="${cls}" data-slot="${i}" style="background:${m.color}" aria-label="Slot ${i+1}: ${m.name}${done?" (done)":""}">${m.short}<small>${i+1}</small>${done?'<span class="pcheck">✓</span>':""}</button>`;
   });
-  return html + "</div></div>";
+  html += "</div>";
+  html += `<div class="cycle-row"><span class="num">${S.cycleDone.length} of ${ROTATION.length} done this cycle</span><button id="cycleReset">reset cycle</button></div>`;
+  return html + "</div>";
 }
 
 /* ---------- TODAY ---------- */
@@ -621,11 +635,20 @@ function bind(){
   document.querySelectorAll(".plate").forEach(p=>{
     p.onclick = ()=>{
       if(S.active){ toast("Finish or discard the current workout first"); return; }
-      S.pointer = parseInt(p.dataset.slot,10);
+      const slot = parseInt(p.dataset.slot,10);
+      if(S.cycleDone.includes(slot)) toast("Heads up — you've already done this one this cycle");
+      S.pointer = slot;
       S.override = null;
       save(); queueSync(); render();
     };
   });
+  const cyc = $("#cycleReset");
+  if(cyc) cyc.onclick = ()=>{
+    if(confirm("Start a fresh cycle? All checkmarks clear (your history is untouched).")){
+      S.cycleDone = [];
+      save(); queueSync(); render();
+    }
+  };
 
   const start = $("#startBtn");
   if(start) start.onclick = ()=> startWorkout(todaysWorkoutId());
@@ -754,11 +777,30 @@ function finishWorkout(){
   if(S.sync.repo) repoBackup(false);
 }
 function advancePointer(wid){
-  for(let k=0;k<ROTATION.length;k++){
-    const idx = (S.pointer+k)%ROTATION.length;
-    if(ROTATION[idx]===wid){ S.pointer=(idx+1)%ROTATION.length; return; }
+  // check off the slot this workout fulfills (prefer the current pointer slot)
+  let slot = -1;
+  if(ROTATION[S.pointer]===wid && !S.cycleDone.includes(S.pointer)){
+    slot = S.pointer;
+  } else {
+    for(let k=0;k<ROTATION.length;k++){
+      const idx = (S.pointer+k)%ROTATION.length;
+      if(ROTATION[idx]===wid && !S.cycleDone.includes(idx)){ slot = idx; break; }
+    }
   }
-  S.pointer = (S.pointer+1)%ROTATION.length;
+  if(slot>-1) S.cycleDone.push(slot);
+  // whole cycle done → fresh cycle
+  if(S.cycleDone.length >= ROTATION.length){
+    S.cycleDone = [];
+    S.pointer = slot>-1 ? (slot+1)%ROTATION.length : 0;
+    toast("Cycle complete — starting a fresh one 🔁");
+    return;
+  }
+  // suggest the next slot that hasn't been done yet
+  const from = slot>-1 ? slot : S.pointer;
+  for(let k=1;k<=ROTATION.length;k++){
+    const idx = (from+k)%ROTATION.length;
+    if(!S.cycleDone.includes(idx)){ S.pointer = idx; return; }
+  }
 }
 function openPicker(){
   let h = `<h3>Pick today's workout</h3><div class="picker">`;
@@ -968,7 +1010,7 @@ async function gistFetch(path, opts={}){
   return res.json();
 }
 function payload(){
-  return JSON.stringify({program:S.program, pointer:S.pointer, sessions:S.sessions, savedAt:S.savedAt}, null, 1);
+  return JSON.stringify({program:S.program, pointer:S.pointer, cycleDone:S.cycleDone, sessions:S.sessions, savedAt:S.savedAt}, null, 1);
 }
 async function connectGist(){
   S.sync.token = $("#tokenIn").value.trim();
@@ -1007,6 +1049,7 @@ async function syncNow(announce){
       const extra = S.sessions.filter(s=>!ids.has(s.id));
       S.program = remote.program;
       S.pointer = remote.pointer;
+      S.cycleDone = Array.isArray(remote.cycleDone) ? remote.cycleDone : S.cycleDone;
       S.sessions = remote.sessions.concat(extra).sort((a,b)=>a.startedAt-b.startedAt);
       save();
     } else if(remote){
@@ -1214,6 +1257,7 @@ function importJSON(e){
       if(!d.program || !Array.isArray(d.sessions)) throw new Error("not an Iron Log file");
       S.program = d.program;
       S.pointer = d.pointer||0;
+      S.cycleDone = Array.isArray(d.cycleDone) ? d.cycleDone : [];
       S.sessions = d.sessions;
       save(); queueSync(); render(); toast("Imported ✓");
     }catch(err){ toast("Import failed: "+err.message); }
