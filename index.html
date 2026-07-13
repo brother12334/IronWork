@@ -164,6 +164,7 @@ nav button.on{color:var(--text);background:var(--card2)}
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+.fin-label{font-family:var(--disp);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);border-top:1px dashed var(--line);padding-top:12px;margin:6px 0 10px}
 .syncdot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-left:9px;vertical-align:middle;background:var(--faint)}
 .empty{color:var(--faint);text-align:center;padding:34px 10px;font-size:15px}
 .danger{color:var(--bad)}
@@ -246,8 +247,16 @@ function defaultProgram(){
       ex("Hip Thrust",2,"8-10","7-8",80,""),
       ex("Smith Machine Squat",2,"5-8","9-10",50,"25 lb plate each side"),
       ex("Standing Calf Raise (Smith)",2,"10-12","8-9",30,"15 lb each side")
-    ]
+    ],
+    finisher: defaultFinisher()
   };
+}
+function defaultFinisher(){
+  return [
+    ex("Cable Ab Crunch",1,"10-12","9-10",150,""),
+    ex("Leg Raises",1,"8-10","9-10",null,"bodyweight"),
+    ex("Cable Ab Crunch (round 2)",1,"10-12","9-10",150,"")
+  ];
 }
 
 let S = load();
@@ -276,6 +285,8 @@ function migrate(){
     }));
     save();
   }
+  if(S.program && !S.program.finisher){ S.program.finisher = defaultFinisher(); save(); }
+  if(S.sync && S.sync.repo===undefined){ S.sync.repo=""; S.sync.branch="main"; S.sync.lastRepo=null; save(); }
 }
 function save(){
   S.savedAt = Date.now();
@@ -322,18 +333,24 @@ function activeVariant(wid, e){
   if(!e.alt) return e;
   return altIndex(wid)===0 ? e : e.alt;
 }
+function widName(wid){ return wid==="finisher" ? "Finisher" : META[wid].name; }
 function resolvedProgram(wid){
-  return S.program[wid].map(e=>{
+  const main = S.program[wid].map(e=>{
     const v = activeVariant(wid, e);
-    return {chosen:v, other: e.alt ? (v===e ? e.alt : e) : null};
+    return {chosen:v, other: e.alt ? (v===e ? e.alt : e) : null, isFinisher:false};
   });
+  const fin = (S.program.finisher||[]).map(e=>({chosen:e, other:null, isFinisher:true}));
+  return main.concat(fin);
 }
 function lastSetsFor(workoutId, exName){
-  for(let i=S.sessions.length-1;i>=0;i--){
-    const s = S.sessions[i];
-    if(s.workoutId!==workoutId) continue;
-    const e = s.entries.find(en=>en.name===exName);
-    if(e) return e.sets;
+  // same-day sessions first (best comparison), then any session (covers the everyday finisher)
+  for(let pass=0; pass<2; pass++){
+    for(let i=S.sessions.length-1;i>=0;i--){
+      const s = S.sessions[i];
+      if(pass===0 && s.workoutId!==workoutId) continue;
+      const e = s.entries.find(en=>en.name===exName);
+      if(e) return e.sets;
+    }
   }
   return null;
 }
@@ -390,7 +407,9 @@ function viewToday(){
   </div>`;
 
   h += `<div class="card">`;
-  resolvedProgram(wid).forEach(({chosen:e, other})=>{
+  let finLabeled = false;
+  resolvedProgram(wid).forEach(({chosen:e, other, isFinisher})=>{
+    if(isFinisher && !finLabeled){ h += `<div class="fin-label">Finisher — every workout</div>`; finLabeled = true; }
     const last = lastSetsFor(wid, e.name);
     const lastTop = last ? fmtSet(bestSet(last)) : null;
     h += `<div class="ex-head"><b>${esc(e.name)}${other?'<span class="alt-badge">⇄</span>':''}</b><span class="ex-target">${e.sets}×${esc(e.reps)}${e.rpe?' · <span class="rpe-help" title="Tap for what RPE means">'+esc(rpeTxt(e.rpe))+'</span>':""}</span></div>`;
@@ -428,7 +447,9 @@ function viewActiveSession(){
     <div class="sub">Started ${new Date(a.startedAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}. Fill sets as you go — tapping ✓ on an empty row copies last time's numbers. Tap <span class="rpe-help">RPE</span> anywhere to see what it means.</div>
   </div>`;
 
+  let finLab = false;
   a.entries.forEach((en,ei)=>{
+    if(en.fin && !finLab){ h += `<div class="fin-label">Finisher</div>`; finLab = true; }
     const last = lastSetsFor(a.workoutId, en.name);
     h += `<div class="card ex">
       <div class="ex-head"><b>${esc(en.name)}</b><span class="ex-target">${en.sets.length}×${esc(en.reps||"")}${en.rpe?' · <span class="rpe-help" title="Tap for what RPE means">'+esc(rpeTxt(en.rpe))+'</span>':""}</span></div>`;
@@ -514,6 +535,23 @@ function viewProgram(){
     });
     h += `<button class="btn ghost small" data-addex="${wid}" style="margin-top:10px">+ Add exercise</button></div>`;
   });
+  // finisher — attached to every workout
+  h += `<div class="card">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:2px">
+      <span class="dot" style="background:var(--dim)"></span><h3>Finisher</h3>
+    </div>
+    <div class="sub" style="margin-bottom:6px">Runs at the end of every workout, in this order.</div>`;
+  (S.program.finisher||[]).forEach((e,i)=>{
+    h += `<div class="prog-ex">
+      <div><b>${esc(e.name)}</b><div class="meta">${e.sets}×${esc(e.reps)}${e.rpe?" · "+esc(rpeTxt(e.rpe)):""}${e.weight!=null?" · "+e.weight+" lb":""}${e.note?" · "+esc(e.note):""}</div></div>
+      <div class="icon-btns">
+        <button data-up="finisher:${i}" aria-label="Move up">↑</button>
+        <button data-down="finisher:${i}" aria-label="Move down">↓</button>
+        <button data-edit="finisher:${i}" aria-label="Edit">✎</button>
+      </div>
+    </div>`;
+  });
+  h += `<button class="btn ghost small" data-addex="finisher" style="margin-top:10px">+ Add exercise</button></div>`;
   return h;
 }
 
@@ -531,6 +569,17 @@ function viewSync(){
       <button class="btn ghost small" id="syncBtn" ${c.gistId?"":"disabled"}>Sync now</button>
     </div>
     <div class="sub num" style="margin-top:8px">${c.lastSync?"Last synced "+new Date(c.lastSync).toLocaleString():"Not synced yet"}</div>
+  </div>
+  <div class="card">
+    <h3>Repo backup</h3>
+    <div class="sub" style="margin-bottom:10px">After every workout, the app also commits two files straight into your GitHub repo: <b>workout-log.csv</b> (your full history as a spreadsheet) and <b>ironlog-backup.json</b> (a restorable copy of everything). Your token needs the <b>repo</b> scope for this — if you made it with only gist, generate a new one with both boxes checked and paste it above.</div>
+    <div class="field"><label>Repository (username/repo-name)</label><input id="repoIn" value="${esc(c.repo||"")}" placeholder="prosper/iron-log"></div>
+    <div class="field"><label>Branch</label><input id="branchIn" value="${esc(c.branch||"main")}" placeholder="main"></div>
+    <div class="btn-row">
+      <button class="btn small" id="repoSaveBtn">Save</button>
+      <button class="btn ghost small" id="repoBackupBtn" ${c.repo?"":"disabled"}>Back up now</button>
+    </div>
+    <div class="sub num" style="margin-top:8px">${c.lastRepo?"Last repo backup "+new Date(c.lastRepo).toLocaleString():"No repo backups yet"}</div>
   </div>
   <div class="card">
     <h3>Backup</h3>
@@ -634,6 +683,16 @@ function bind(){
 
   const conn = $("#connectBtn");
   if(conn) conn.onclick = connectGist;
+  const rSave = $("#repoSaveBtn");
+  if(rSave) rSave.onclick = ()=>{
+    S.sync.token = $("#tokenIn").value.trim() || S.sync.token;
+    S.sync.repo = $("#repoIn").value.trim().replace(/^https?:\/\/github\.com\//,"").replace(/\/+$/,"");
+    S.sync.branch = $("#branchIn").value.trim() || "main";
+    save(); render();
+    if(S.sync.repo) toast("Repo saved — backing up…"), repoBackup(true);
+  };
+  const rBak = $("#repoBackupBtn");
+  if(rBak) rBak.onclick = ()=> repoBackup(true);
   const syn = $("#syncBtn");
   if(syn) syn.onclick = ()=> syncNow(true);
   const exp = $("#exportBtn");
@@ -657,8 +716,8 @@ function startWorkout(wid){
     workoutId: wid,
     date: todayStr(),
     startedAt: Date.now(),
-    entries: resolvedProgram(wid).map(({chosen:e})=>({
-      name: e.name, reps: e.reps, rpe: e.rpe, note: e.note,
+    entries: resolvedProgram(wid).map(({chosen:e, isFinisher})=>({
+      name: e.name, reps: e.reps, rpe: e.rpe, note: e.note, fin: isFinisher||undefined,
       sets: Array.from({length:e.sets}, ()=>({weight:"",reps:"",rpe:"",done:false}))
     }))
   };
@@ -678,6 +737,7 @@ function finishWorkout(){
   save(); render();
   toast("Workout saved 💪");
   if(S.sync.gistId) syncNow(false);
+  if(S.sync.repo) repoBackup(false);
 }
 function advancePointer(wid){
   for(let k=0;k<ROTATION.length;k++){
@@ -705,7 +765,8 @@ function openExEditor(wid, idx){
   const isNew = idx<0;
   const e = isNew ? ex("",3,"8-10","",null,"") : S.program[wid][idx];
   const alt = e.alt || ex("",3,"8-10","",null,"");
-  let h = `<h3>${isNew?"Add":"Edit"} exercise — ${META[wid].name}</h3>
+  const dayLabel = wid==="finisher" ? "session" : widName(wid).toLowerCase()+" day";
+  let h = `<h3>${isNew?"Add":"Edit"} exercise — ${widName(wid)}</h3>
   <div class="field"><label>Name</label><input id="f_name" value="${esc(e.name)}"></div>
   <div class="field"><label>Sets / rep range</label><div class="duo">
     <input id="f_sets" inputmode="numeric" value="${e.sets}" placeholder="sets">
@@ -716,7 +777,7 @@ function openExEditor(wid, idx){
     <input id="f_weight" inputmode="decimal" value="${e.weight??""}" placeholder="optional">
   </div></div>
   <div class="field"><label>Note</label><input id="f_note" value="${esc(e.note)}" placeholder="per dumbbell, tempo, etc."></div>
-  <div class="togglerow"><input type="checkbox" id="f_hasAlt" ${e.alt?"checked":""}><label for="f_hasAlt" style="margin:0;font:inherit;color:var(--text);text-transform:none;letter-spacing:0">Alternates with a second exercise every other ${META[wid].name.toLowerCase()} day</label></div>
+  <div class="togglerow"><input type="checkbox" id="f_hasAlt" ${e.alt?"checked":""}><label for="f_hasAlt" style="margin:0;font:inherit;color:var(--text);text-transform:none;letter-spacing:0">Alternates with a second exercise every other ${dayLabel}</label></div>
   <div id="altFields" style="display:${e.alt?"block":"none"};border-top:1px solid var(--line);padding-top:12px">
     <div class="field"><label>Alternate name</label><input id="g_name" value="${esc(alt.name)}"></div>
     <div class="field"><label>Sets / rep range</label><div class="duo">
@@ -891,12 +952,20 @@ function buildReportHTML(){
   sessions.forEach(s=>{
     const m = META[s.workoutId];
     const vol = s.entries.reduce((t,e)=>t+e.sets.reduce((u,st)=>u+((parseFloat(st.weight)||0)*(parseFloat(st.reps)||0)),0),0);
-    body += `<h2>${longDate(s.date)} — ${m.name} Day</h2>`;
+    body += `<h2>${longDate(s.date)} — ${m.name} Day</h2>
+    <table><thead><tr><th>Exercise</th><th>Set</th><th>Weight (lb)</th><th>Reps</th><th>RPE</th></tr></thead><tbody>`;
     s.entries.forEach(e=>{
       const sets = e.sets.filter(st=>st.reps||st.weight);
       if(!sets.length) return;
-      body += `<p>On this date I performed <b>${sets.length} ${sets.length===1?"set":"sets"} of ${esc(e.name)}</b>: ${joinList(sets.map(setSentence))}.</p>`;
+      sets.forEach((st,i)=>{
+        body += `<tr>${i===0?`<td rowspan="${sets.length}"><b>${esc(e.name)}</b></td>`:""}
+          <td class="c">${i+1}</td>
+          <td class="c">${st.weight!=null&&st.weight!==""?esc(st.weight):"bodyweight"}</td>
+          <td class="c">${esc(st.reps||"")}</td>
+          <td class="c">${esc(st.rpe||"—")}</td></tr>`;
+      });
     });
+    body += `</tbody></table>`;
     if(vol>0) body += `<p class="meta">Total working volume: ${Math.round(vol).toLocaleString()} lb.</p>`;
   });
 
@@ -907,6 +976,11 @@ function buildReportHTML(){
     h2{font-size:14pt;margin:26px 0 6px}
     p{margin:5px 0}
     .meta{color:#555;font-size:10.5pt;font-style:italic}
+    table{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:10.5pt}
+    th,td{border:1px solid #999;padding:5px 9px;text-align:left;vertical-align:top}
+    th{background:#eee;font-size:9pt;text-transform:uppercase;letter-spacing:.05em}
+    td.c{text-align:center;font-variant-numeric:tabular-nums}
+    tr{page-break-inside:avoid}
     hr{border:none;border-top:1px solid #bbb;margin:18px 0}
     .noprint{position:fixed;top:14px;right:14px;padding:10px 18px;font:bold 12pt sans-serif;cursor:pointer;background:#111;color:#fff;border:none;border-radius:8px}
     @media print{.noprint{display:none}}
@@ -937,6 +1011,50 @@ function downloadDoc(){
   a.download = "training-report-"+todayStr()+".doc";
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+/* ---------- repo backup (CSV + JSON committed to the GitHub repo) ---------- */
+function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function buildCSV(){
+  const rows = [["Date","Workout","Exercise","Set","Weight (lb)","Reps","RPE"]];
+  [...S.sessions].sort((a,b)=>a.startedAt-b.startedAt).forEach(s=>{
+    s.entries.forEach(e=>{
+      e.sets.forEach((st,i)=>{
+        rows.push([s.date, META[s.workoutId].name, e.name, i+1,
+          (st.weight!=null&&st.weight!=="")?st.weight:"bodyweight", st.reps??"", st.rpe??""]);
+      });
+    });
+  });
+  return rows.map(r=>r.map(v=>{
+    v = String(v==null?"":v);
+    return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+  }).join(",")).join("\n");
+}
+async function repoPut(path, content, message){
+  const branch = S.sync.branch || "main";
+  let sha = null;
+  try{
+    const cur = await gistFetch("repos/"+S.sync.repo+"/contents/"+path+"?ref="+branch);
+    sha = cur.sha;
+  }catch(e){ /* file doesn't exist yet — first commit */ }
+  const body = {message, content: b64(content), branch};
+  if(sha) body.sha = sha;
+  await gistFetch("repos/"+S.sync.repo+"/contents/"+path, {method:"PUT", body: JSON.stringify(body)});
+}
+async function repoBackup(announce){
+  if(!S.sync.token || !S.sync.repo){ if(announce) toast("Add your repo in the Sync tab first"); return; }
+  try{
+    const stamp = new Date().toLocaleString();
+    await repoPut("workout-log.csv", buildCSV(), "Workout log update — "+stamp);
+    await repoPut("ironlog-backup.json", payload(), "Data backup — "+stamp);
+    S.sync.lastRepo = Date.now();
+    save();
+    setSyncStatus("ok");
+    if(announce){ toast("Backed up to repo ✓"); if(TAB==="sync") render(); }
+  }catch(err){
+    setSyncStatus("err");
+    toast("Repo backup failed: "+err.message);
+  }
 }
 
 /* ---------- backup ---------- */
