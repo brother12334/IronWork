@@ -1,0 +1,435 @@
+{
+ "program": {
+  "chest": [
+   {
+    "name": "Dumbbell Bench Press",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "9",
+    "weight": 40,
+    "note": "per dumbbell"
+   },
+   {
+    "name": "Incline Dumbbell Bench Press",
+    "sets": 3,
+    "reps": "8-12",
+    "rpe": "8-9",
+    "weight": 35,
+    "note": "per dumbbell"
+   },
+   {
+    "name": "Mid Cable Fly (on bench)",
+    "sets": 3,
+    "reps": "10-12",
+    "rpe": "7-8",
+    "weight": 45,
+    "note": ""
+   },
+   {
+    "name": "Cable Chest Press (on bench)",
+    "sets": 3,
+    "reps": "10-12",
+    "rpe": "8-9",
+    "weight": 35,
+    "note": ""
+   },
+   {
+    "name": "Guillotine Press",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "",
+    "weight": 30,
+    "note": "",
+    "alt": {
+     "name": "Chest Dips",
+     "sets": 3,
+     "reps": "5-8",
+     "rpe": "",
+     "weight": null,
+     "note": "bodyweight — log added lbs if weighted"
+    }
+   }
+  ],
+  "back": [
+   {
+    "name": "Lat Pulldown",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "8-9",
+    "weight": 130,
+    "note": ""
+   },
+   {
+    "name": "Mid Row",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "8-9",
+    "weight": 130,
+    "note": ""
+   },
+   {
+    "name": "Dumbbell RDL",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "9-10",
+    "weight": 35,
+    "note": "per dumbbell"
+   },
+   {
+    "name": "Cable Lat Prayer",
+    "sets": 3,
+    "reps": "10-12",
+    "rpe": "8-9",
+    "weight": null,
+    "note": ""
+   }
+  ],
+  "arms": [
+   {
+    "name": "Incline Dumbbell Curl",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "7-8",
+    "weight": 25,
+    "note": "per dumbbell"
+   },
+   {
+    "name": "Tricep Pushdown",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "8-9",
+    "weight": 100,
+    "note": ""
+   },
+   {
+    "name": "Preacher Curl",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "9",
+    "weight": 25,
+    "note": "single arm — alternate L/R each set"
+   },
+   {
+    "name": "Tricep Kickback",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "8-9",
+    "weight": 30,
+    "note": ""
+   },
+   {
+    "name": "Spider Curl",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "8-9",
+    "weight": 25,
+    "note": ""
+   },
+   {
+    "name": "Hammer Curl",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "7-8",
+    "weight": 25,
+    "note": "per dumbbell"
+   },
+   {
+    "name": "Cable Tricep Extension",
+    "sets": 3,
+    "reps": "10-15",
+    "rpe": "8-9",
+    "weight": 65,
+    "note": ""
+   }
+  ],
+  "shoulders": [
+   {
+    "name": "Smith Machine Shoulder Press",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "9",
+    "weight": 20,
+    "note": "10 lb plate each side"
+   },
+   {
+    "name": "Alternating Cable Lateral Raise",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "8-9",
+    "weight": 15,
+    "note": ""
+   },
+   {
+    "name": "Cable Reverse Rear Delt Fly",
+    "sets": 3,
+    "reps": "8-10",
+    "rpe": "8-10",
+    "weight": 30,
+    "note": ""
+   }
+  ],
+  "legs": [
+   {
+    "name": "Leg Curl",
+    "sets": 2,
+    "reps": "8-10",
+    "rpe": "7-8",
+    "weight": 80,
+    "note": ""
+   },
+   {
+    "name": "Leg Extension",
+    "sets": 2,
+    "reps": "8-10",
+    "rpe": "7-8",
+    "weight": 55,
+    "note": ""
+   },
+   {
+    "name": "Hip Thrust",
+    "sets": 2,
+    "reps": "8-10",
+    "rpe": "7-8",
+    "weight": 80,
+    "note": ""
+   },
+   {
+    "name": "Smith Machine Squat",
+    "sets": 2,
+    "reps": "5-8",
+    "rpe": "9-10",
+    "weight": 50,
+    "note": "25 lb plate each side"
+   },
+   {
+    "name": "Standing Calf Raise (Smith)",
+    "sets": 2,
+    "reps": "10-12",
+    "rpe": "8-9",
+    "weight": 30,
+    "note": "15 lb each side"
+   }
+  ],
+  "finisher": [
+   {
+    "name": "Cable Ab Crunch",
+    "sets": 1,
+    "reps": "10-12",
+    "rpe": "9-10",
+    "weight": 150,
+    "note": ""
+   },
+   {
+    "name": "Leg Raises",
+    "sets": 1,
+    "reps": "8-10",
+    "rpe": "9-10",
+    "weight": null,
+    "note": "bodyweight"
+   },
+   {
+    "name": "Cable Ab Crunch (round 2)",
+    "sets": 1,
+    "reps": "10-12",
+    "rpe": "9-10",
+    "weight": 150,
+    "note": ""
+   }
+  ]
+ },
+ "pointer": 3,
+ "sessions": [
+  {
+   "id": "mrifmcovptjzs",
+   "workoutId": "arms",
+   "date": "2026-07-12",
+   "startedAt": 1783899361472,
+   "finishedAt": 1783904188740,
+   "entries": [
+    {
+     "name": "Incline Dumbbell Curl",
+     "reps": "8-10",
+     "rpe": "7-8",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "11",
+       "rpe": "8.5",
+       "done": true
+      },
+      {
+       "weight": "25",
+       "reps": "10",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "25",
+       "reps": "9",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Tricep Pushdown",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "100",
+       "reps": "16",
+       "rpe": "8",
+       "done": true
+      },
+      {
+       "weight": "100",
+       "reps": "15",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "100",
+       "reps": "12",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Preacher Curl",
+     "reps": "8-10",
+     "rpe": "9",
+     "note": "single arm — alternate L/R each set",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "10",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "25",
+       "reps": "11",
+       "rpe": "9.5",
+       "done": true
+      },
+      {
+       "weight": "25",
+       "reps": "9",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Tricep Kickback",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "30",
+       "reps": "11",
+       "rpe": "8.5",
+       "done": true
+      },
+      {
+       "weight": "30",
+       "reps": "13",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "30",
+       "reps": "9",
+       "rpe": "9",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Spider Curl",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "5",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "20",
+       "reps": "7",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "20",
+       "reps": "8",
+       "rpe": "10",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Hammer Curl",
+     "reps": "8-10",
+     "rpe": "7-8",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "7",
+       "rpe": "9.5",
+       "done": true
+      },
+      {
+       "weight": "25",
+       "reps": "7",
+       "rpe": "9.5",
+       "done": true
+      },
+      {
+       "weight": "25",
+       "reps": "7",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Cable Tricep Extension",
+     "reps": "10-15",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "80",
+       "reps": "16",
+       "rpe": "8",
+       "done": true
+      },
+      {
+       "weight": "80",
+       "reps": "12",
+       "rpe": "8.5",
+       "done": true
+      },
+      {
+       "weight": "80",
+       "reps": "11",
+       "rpe": "9",
+       "done": true
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "savedAt": 1783906137621
+}
