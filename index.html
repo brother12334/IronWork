@@ -253,9 +253,8 @@ function defaultProgram(){
 }
 function defaultFinisher(){
   return [
-    ex("Cable Ab Crunch",1,"10-12","9-10",150,""),
-    ex("Leg Raises",1,"8-10","9-10",null,"bodyweight"),
-    ex("Cable Ab Crunch (round 2)",1,"10-12","9-10",150,"")
+    ex("Cable Ab Crunch",2,"10-12","9-10",150,""),
+    ex("Leg Raises",1,"8-10","9-10",null,"bodyweight")
   ];
 }
 
@@ -286,6 +285,16 @@ function migrate(){
     save();
   }
   if(S.program && !S.program.finisher){ S.program.finisher = defaultFinisher(); save(); }
+  if(S.program && S.program.finisher){
+    const f = S.program.finisher;
+    const r2 = f.findIndex(e=>/round 2/i.test(e.name||""));
+    if(r2 > -1){
+      f.splice(r2,1);
+      const crunch = f.find(e=>/cable ab crunch/i.test(e.name||""));
+      if(crunch && crunch.sets < 2) crunch.sets = 2;
+      save();
+    }
+  }
   if(S.sync && S.sync.repo===undefined){ S.sync.repo=""; S.sync.branch="main"; S.sync.lastRepo=null; save(); }
 }
 function save(){
@@ -851,7 +860,7 @@ function allExerciseNames(){
     });
   });
   S.sessions.forEach(s=>s.entries.forEach(e=>set.add(e.name)));
-  return [...set].filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  return [...set].filter(n=>n && !/round 2/i.test(n)).sort((a,b)=>a.localeCompare(b));
 }
 function openSessionEditor(id){
   const s = S.sessions.find(x=>x.id===id);
@@ -897,8 +906,14 @@ function renderSessEditor(s){
   };
   drawSets();
 
+  const harvest = ()=>{
+    document.querySelectorAll("#newSets [data-ns]").forEach(el=>{
+      newSets[el.dataset.ns][el.dataset.f] = el.value;
+    });
+  };
+
   $("#addExSel").onchange = ev=>{ $("#customWrap").style.display = ev.target.value==="__custom__" ? "block" : "none"; };
-  $("#plusSet").onclick = ()=>{ newSets.push({weight:"",reps:"",rpe:""}); drawSets(); };
+  $("#plusSet").onclick = ()=>{ harvest(); newSets.push({weight:"",reps:"",rpe:""}); drawSets(); };
   document.querySelectorAll("[data-rmex]").forEach(b=> b.onclick=()=>{
     if(confirm("Remove this exercise from the session?")){
       s.entries.splice(parseInt(b.dataset.rmex,10),1);
@@ -907,10 +922,11 @@ function renderSessEditor(s){
     }
   });
   $("#addToSess").onclick = ()=>{
+    harvest();
     let name = $("#addExSel").value;
     if(name==="__custom__") name = $("#customName").value.trim();
     if(!name){ toast("Pick or name an exercise first"); return; }
-    const sets = newSets.filter(st=>st.reps||st.weight).map(st=>({weight:st.weight, reps:st.reps, rpe:st.rpe, done:true}));
+    const sets = newSets.filter(st=>String(st.reps).trim()||String(st.weight).trim()).map(st=>({weight:st.weight, reps:st.reps, rpe:st.rpe, done:true}));
     if(!sets.length){ toast("Fill in at least one set"); return; }
     s.entries.push({name, sets});
     save(); queueSync();
@@ -1108,15 +1124,25 @@ function fmtSetShort(st){
   return s;
 }
 function buildCSV(){
-  const rows = [["Date","Workout","Exercise","Sets"]];
-  [...S.sessions].sort((a,b)=>b.startedAt-a.startedAt).forEach(s=>{
-    rows.push([s.date, META[s.workoutId].name, "", ""]);
+  const sessions = [...S.sessions].sort((a,b)=>b.startedAt-a.startedAt);
+  let maxSets = 1;
+  sessions.forEach(s=>s.entries.forEach(e=>{
+    const n = e.sets.filter(st=>st.reps||st.weight).length;
+    if(n>maxSets) maxSets = n;
+  }));
+  const header = ["Exercise"];
+  for(let i=1;i<=maxSets;i++) header.push("Set "+i);
+  const rows = [header];
+  sessions.forEach(s=>{
+    rows.push([s.date+" — "+META[s.workoutId].name.toUpperCase(), ...Array(maxSets).fill("")]);
     s.entries.forEach(e=>{
       const sets = e.sets.filter(st=>st.reps||st.weight);
       if(!sets.length) return;
-      rows.push(["", "", e.name, sets.map(fmtSetShort).join(" | ")]);
+      const row = [e.name];
+      for(let i=0;i<maxSets;i++) row.push(sets[i] ? fmtSetShort(sets[i]) : "");
+      rows.push(row);
     });
-    rows.push(["","","",""]);
+    rows.push(Array(maxSets+1).fill(""));
   });
   return rows.map(r=>r.map(v=>{
     v = String(v==null?"":v);
@@ -1125,17 +1151,32 @@ function buildCSV(){
 }
 async function repoPut(path, content, message){
   const branch = S.sync.branch || "main";
-  let sha = null;
-  try{
-    const cur = await gistFetch("repos/"+S.sync.repo+"/contents/"+path+"?ref="+branch);
-    sha = cur.sha;
-  }catch(e){ /* file doesn't exist yet — first commit */ }
-  const body = {message, content: b64(content), branch};
-  if(sha) body.sha = sha;
-  await gistFetch("repos/"+S.sync.repo+"/contents/"+path, {method:"PUT", body: JSON.stringify(body)});
+  for(let attempt=1; attempt<=3; attempt++){
+    let sha = null;
+    try{
+      const cur = await gistFetch("repos/"+S.sync.repo+"/contents/"+encodeURIComponent(path)+"?ref="+branch+"&t="+Date.now());
+      sha = cur.sha;
+    }catch(e){ /* file doesn't exist yet — first commit */ }
+    const body = {message, content: b64(content), branch};
+    if(sha) body.sha = sha;
+    try{
+      await gistFetch("repos/"+S.sync.repo+"/contents/"+encodeURIComponent(path), {method:"PUT", body: JSON.stringify(body)});
+      return;
+    }catch(err){
+      // 409 = another commit landed between our read and write — refetch sha and retry
+      if(String(err.message).startsWith("409") && attempt<3){
+        await new Promise(r=>setTimeout(r, 900*attempt));
+        continue;
+      }
+      throw err;
+    }
+  }
 }
+let repoBusy = false, repoAgain = false;
 async function repoBackup(announce){
   if(!S.sync.token || !S.sync.repo){ if(announce) toast("Add your repo in the Sync tab first"); return; }
+  if(repoBusy){ repoAgain = true; return; }
+  repoBusy = true;
   try{
     const stamp = new Date().toLocaleString();
     await repoPut("workout-log.csv", buildCSV(), "Workout log update — "+stamp);
@@ -1147,6 +1188,9 @@ async function repoBackup(announce){
   }catch(err){
     setSyncStatus("err");
     toast("Repo backup failed: "+err.message);
+  }finally{
+    repoBusy = false;
+    if(repoAgain){ repoAgain = false; repoBackup(false); }
   }
 }
 
