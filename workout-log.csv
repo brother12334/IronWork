@@ -1,22 +1,13 @@
-Date,Workout,Exercise,Set,Weight (lb),Reps,RPE
-2026-07-12,Arms,Incline Dumbbell Curl,1,25,11,8.5
-2026-07-12,Arms,Incline Dumbbell Curl,2,25,10,9
-2026-07-12,Arms,Incline Dumbbell Curl,3,25,9,9.5
-2026-07-12,Arms,Tricep Pushdown,1,100,16,8
-2026-07-12,Arms,Tricep Pushdown,2,100,15,9
-2026-07-12,Arms,Tricep Pushdown,3,100,12,9.5
-2026-07-12,Arms,Preacher Curl,1,25,10,9
-2026-07-12,Arms,Preacher Curl,2,25,11,9.5
-2026-07-12,Arms,Preacher Curl,3,25,9,9.5
-2026-07-12,Arms,Tricep Kickback,1,30,11,8.5
-2026-07-12,Arms,Tricep Kickback,2,30,13,9
-2026-07-12,Arms,Tricep Kickback,3,30,9,9
-2026-07-12,Arms,Spider Curl,1,25,5,9
-2026-07-12,Arms,Spider Curl,2,20,7,9
-2026-07-12,Arms,Spider Curl,3,20,8,10
-2026-07-12,Arms,Hammer Curl,1,25,7,9.5
-2026-07-12,Arms,Hammer Curl,2,25,7,9.5
-2026-07-12,Arms,Hammer Curl,3,25,7,9.5
-2026-07-12,Arms,Cable Tricep Extension,1,80,16,8
-2026-07-12,Arms,Cable Tricep Extension,2,80,12,8.5
-2026-07-12,Arms,Cable Tricep Extension,3,80,11,9
+Date,Workout,Exercise,Sets
+2026-07-12,Arms,,
+,,Incline Dumbbell Curl,25×11 @8.5 | 25×10 @9 | 25×9 @9.5
+,,Tricep Pushdown,100×16 @8 | 100×15 @9 | 100×12 @9.5
+,,Preacher Curl,25×10 @9 | 25×11 @9.5 | 25×9 @9.5
+,,Tricep Kickback,30×11 @8.5 | 30×13 @9 | 30×9 @9
+,,Spider Curl,25×5 @9 | 20×7 @9 | 20×8 @10
+,,Hammer Curl,25×7 @9.5 | 25×7 @9.5 | 25×7 @9.5
+,,Cable Tricep Extension,80×16 @8 | 80×12 @8.5 | 80×11 @9
+,,Cable Ab Crunch,150×12 @9.5
+,,Leg Raises,bw×13 @8.5
+,,Cable Ab Crunch (round 2),150×? @9.5
+,,,
