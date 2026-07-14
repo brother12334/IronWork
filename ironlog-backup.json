@@ -230,6 +230,11 @@
   ]
  },
  "pointer": 3,
+ "cycleStart": 1783899361472,
+ "cycleDone": [
+  2,
+  1
+ ],
  "sessions": [
   {
    "id": "mrifmcovptjzs",
@@ -454,7 +459,156 @@
      ]
     }
    ]
+  },
+  {
+   "id": "mrjy7x6k5pt4k",
+   "workoutId": "back",
+   "date": "2026-07-13",
+   "startedAt": 1783991067068,
+   "finishedAt": 1783994480926,
+   "entries": [
+    {
+     "name": "Lat Pulldown",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "110",
+       "reps": "11",
+       "rpe": "7.5",
+       "done": true
+      },
+      {
+       "weight": "110",
+       "reps": "12",
+       "rpe": "8.5",
+       "done": true
+      },
+      {
+       "weight": "110",
+       "reps": "15",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Mid Row",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "110",
+       "reps": "15",
+       "rpe": "7.5",
+       "done": true
+      },
+      {
+       "weight": "130",
+       "reps": "10",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "130",
+       "reps": "12",
+       "rpe": "9",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Dumbbell RDL",
+     "reps": "8-10",
+     "rpe": "9-10",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "35",
+       "reps": "13",
+       "rpe": "8.5",
+       "done": true
+      },
+      {
+       "weight": "35",
+       "reps": "11",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "35",
+       "reps": "11",
+       "rpe": "10",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Cable Lat Prayer",
+     "reps": "10-12",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "70",
+       "reps": "13",
+       "rpe": "8",
+       "done": true
+      },
+      {
+       "weight": "70",
+       "reps": "13",
+       "rpe": "8",
+       "done": true
+      },
+      {
+       "weight": "70",
+       "reps": "13",
+       "rpe": "8.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "14",
+       "rpe": "9",
+       "done": true
+      },
+      {
+       "weight": "150",
+       "reps": "10",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Leg Raises",
+     "reps": "8-10",
+     "rpe": "9-10",
+     "note": "bodyweight",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "",
+       "reps": "18",
+       "rpe": "8",
+       "done": true
+      }
+     ]
+    }
+   ]
   }
  ],
- "savedAt": 1783907481657
+ "savedAt": 1783994481900
 }
