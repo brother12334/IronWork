@@ -87,6 +87,7 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
   background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--dim);
   border-radius:11px;
 }
+.ex-insight{font-size:13.5px;color:var(--arms);margin:-6px 0 12px;line-height:1.4}
 .ll-tag{
   font-family:var(--disp);font-size:12px;font-weight:700;line-height:1.15;
   text-transform:uppercase;letter-spacing:.09em;color:var(--dim);margin-right:3px;
@@ -604,6 +605,39 @@ function lastBox(workoutId, exName){
     ${sets.map(st=>`<span class="ll-set">${esc(fmtSetShort(st))}</span>`).join("")}
   </div>`;
 }
+function exHistory(name, n){
+  const out = [];
+  for(let i=S.sessions.length-1; i>=0 && out.length<n; i--){
+    const e = S.sessions[i].entries.find(en=>en.name===name);
+    if(e){
+      const sets = e.sets.filter(st=>st.reps||st.weight);
+      if(sets.length) out.push({date:S.sessions[i].date, sets});
+    }
+  }
+  return out; // newest first
+}
+function insight(exName){
+  const h = exHistory(exName, 3);
+  if(h.length < 2) return null;
+  const top = sess => sess.sets.reduce((b,st)=>{
+    const w = parseFloat(st.weight)||0, r = parseFloat(st.reps)||0;
+    return (!b || w>b.w || (w===b.w && r>b.r)) ? {w,r} : b;
+  }, null);
+  const avgRpe = sess => {
+    const a = sess.sets.map(st=>parseFloat(st.rpe)).filter(x=>!isNaN(x));
+    return a.length ? a.reduce((x,y)=>x+y,0)/a.length : NaN;
+  };
+  const t0 = top(h[0]), t1 = top(h[1]);
+  if(t0.w > t1.w) return "📈 Moved up from "+t1.w+" lb last session — see how it holds";
+  if(t0.w === t1.w){
+    const tOld = top(h[h.length-1]);
+    if(tOld.w===t0.w && t0.r - tOld.r >= 2) return "📈 Reps climbing at "+t0.w+" lb ("+tOld.r+" → "+t0.r+") — might be ready for more weight";
+    if(t1.r - t0.r >= 2) return "📉 Reps dipped at "+t0.w+" lb ("+t1.r+" → "+t0.r+") — could be fatigue";
+  }
+  const r0 = avgRpe(h[0]), r1 = avgRpe(h[1]);
+  if(!isNaN(r0) && !isNaN(r1) && r0>=9.3 && r1>=9.3) return "🔥 Consistently near failure here two sessions running";
+  return null;
+}
 function fmtSet(st){
   if(!st) return "—";
   let out = (st.weight!=null && st.weight!=="" ? st.weight : "bw") + "×" + (st.reps||"?");
@@ -664,8 +698,10 @@ function viewToday(){
   resolvedProgram(wid).forEach(({chosen:e, other, isFinisher})=>{
     if(isFinisher && !finLabeled){ h += `<div class="fin-label">Finisher — every workout</div>`; finLabeled = true; }
     const ll = lastBox(wid, e.name);
+    const ins = insight(e.name);
     h += `<div class="ex-head"><b>${esc(e.name)}${other?'<span class="alt-badge">⇄</span>':''}</b><span class="ex-target">${e.sets}×${esc(e.reps)}${e.rpe?' · <span class="rpe-help" title="Tap for what RPE means">'+esc(rpeTxt(e.rpe))+'</span>':""}</span></div>`;
     if(ll) h += ll;
+    if(ins) h += `<div class="ex-insight">${esc(ins)}</div>`;
     let subBits = [];
     if(!ll) subBits.push('no sessions logged yet');
     if(other) subBits.push('alternates with '+esc(other.name)+' next '+m.name.toLowerCase()+' day');
@@ -725,6 +761,10 @@ function viewActiveSession(){
     </div></div>`;
   });
 
+  h += `<div class="card">
+    <h3 style="font-size:17px">Session note</h3>
+    <div class="field" style="margin:8px 0 0"><input id="sessNote" placeholder="optional — how did it go? sleep, tweaks, pump..." value="${esc(a.note||"")}"></div>
+  </div>`;
   h += `<button class="btn" id="finishBtn">Finish workout</button>`;
   h += `<div class="btn-row"><button class="btn ghost" id="discardBtn">Discard</button></div>`;
   return h;
@@ -753,6 +793,7 @@ function viewHistory(){
         <span class="sub num">${fmtDate(s.date)}</span>
       </div>
       <div class="sub num" style="margin-top:2px">${s.entries.length} exercises · ${Math.round(vol).toLocaleString()} lb total</div>
+      ${s.note?`<div class="sub" style="margin-top:4px;font-style:italic">"${esc(s.note)}"</div>`:""}
       <div class="detail">${s.entries.map(e=>
         `<div class="exline"><b>${esc(e.name)}</b><br><span class="num">${e.sets.filter(st=>st.reps).map(fmtSet).map(esc).join("  ·  ")||"—"}</span></div>`
       ).join("")}
@@ -925,6 +966,8 @@ function bind(){
 
   const fin = $("#finishBtn");
   if(fin) fin.onclick = finishWorkout;
+  const sn = $("#sessNote");
+  if(sn) sn.onchange = ()=>{ S.active.note = sn.value; save(); };
   const disc = $("#discardBtn");
   if(disc) disc.onclick = ()=>{
     if(confirm("Discard this workout? Nothing will be saved.")){ S.active=null; save(); render(); }
@@ -1004,8 +1047,10 @@ function finishWorkout(){
   a.entries = a.entries.filter(e=>e.sets.length);
   a.finishedAt = Date.now();
   const wid = a.workoutId;
+  const noteEl = $("#sessNote");
+  if(noteEl) a.note = noteEl.value.trim();
   const vol = a.entries.reduce((t,e)=>t+e.sets.reduce((u,st)=>u+((parseFloat(st.weight)||0)*(parseFloat(st.reps)||0)),0),0);
-  S.sessions.push({id:a.id, workoutId:a.workoutId, date:a.date, startedAt:a.startedAt, finishedAt:a.finishedAt, entries:a.entries});
+  S.sessions.push({id:a.id, workoutId:a.workoutId, date:a.date, startedAt:a.startedAt, finishedAt:a.finishedAt, entries:a.entries, note:a.note||""});
   S.active = null;
   const cycleFinished = recomputeCycle(true);
   S.override = null;
@@ -1154,7 +1199,8 @@ function openSessionEditor(id){
   if(s) renderSessEditor(s);
 }
 function renderSessEditor(s){
-  let h = `<h3>Edit session — ${META[s.workoutId].name}, ${fmtDate(s.date)}</h3>`;
+  let h = `<h3>Edit session — ${META[s.workoutId].name}, ${fmtDate(s.date)}</h3>
+  <div class="field"><label>Session note</label><input id="sessNoteEdit" value="${esc(s.note||"")}" placeholder="optional"></div>`;
   if(s.entries.length){
     h += s.entries.map((e,i)=>`<div class="prog-ex">
       <div><b>${esc(e.name)}</b><div class="meta">${e.sets.map(fmtSetShort).map(esc).join("  |  ")||"no sets"}</div></div>
@@ -1198,6 +1244,9 @@ function renderSessEditor(s){
       newSets[el.dataset.ns][el.dataset.f] = el.value;
     });
   };
+
+  const ne = $("#sessNoteEdit");
+  if(ne) ne.onchange = ()=>{ s.note = ne.value.trim(); save(); queueSync(); };
 
   $("#addExSel").onchange = ev=>{ $("#customWrap").style.display = ev.target.value==="__custom__" ? "block" : "none"; };
   $("#plusSet").onclick = ()=>{ harvest(); newSets.push({weight:"",reps:"",rpe:""}); drawSets(); };
@@ -1345,6 +1394,7 @@ function buildReportHTML(){
     const m = META[s.workoutId];
     const vol = s.entries.reduce((t,e)=>t+e.sets.reduce((u,st)=>u+((parseFloat(st.weight)||0)*(parseFloat(st.reps)||0)),0),0);
     body += `<h2>${longDate(s.date)} — ${m.name} Day</h2>
+    ${s.note?`<p class="meta">Note: ${esc(s.note)}</p>`:""}
     <table><thead><tr><th>Exercise</th><th>Set</th><th>Weight (lb)</th><th>Reps</th><th>RPE</th></tr></thead><tbody>`;
     s.entries.forEach(e=>{
       const sets = e.sets.filter(st=>st.reps||st.weight);
@@ -1424,7 +1474,7 @@ function buildCSV(){
   for(let i=1;i<=maxSets;i++) header.push("Set "+i);
   const rows = [header];
   sessions.forEach(s=>{
-    rows.push([s.date+" — "+META[s.workoutId].name.toUpperCase(), ...Array(maxSets).fill("")]);
+    rows.push([s.date+" — "+META[s.workoutId].name.toUpperCase(), s.note||"", ...Array(Math.max(0,maxSets-1)).fill("")]);
     s.entries.forEach(e=>{
       const sets = e.sets.filter(st=>st.reps||st.weight);
       if(!sets.length) return;
