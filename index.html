@@ -36,6 +36,11 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
 .hdr .date{color:var(--dim);font-family:var(--mono);font-size:13px}
 
 /* rotation plate strip */
+.plate.rest{
+  background:var(--card2);color:var(--dim);
+  box-shadow:none;border:2px dashed var(--faint);
+}
+.plate.rest.cur{border-style:solid;border-color:var(--text)}
 .plates{display:flex;gap:9px;justify-content:space-between;margin:0 2px 18px}
 .plate{
   flex:1;aspect-ratio:1;max-width:64px;border-radius:50%;
@@ -53,6 +58,14 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
 }
 .cycle-row{display:flex;justify-content:space-between;align-items:center;margin:26px 2px 0;color:var(--faint);font-size:12px}
 .cycle-row button{background:none;border:none;color:var(--faint);font:11px var(--mono);text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;padding:4px}
+.feel-row{display:flex;gap:9px;margin-top:8px}
+.feel-btn{
+  width:52px;height:52px;font-size:27px;border-radius:12px;cursor:pointer;
+  background:var(--card2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  opacity:.45;filter:grayscale(.6);transition:all .15s;
+}
+.feel-btn.on{opacity:1;filter:none;border-color:var(--ok);transform:scale(1.12)}
 .rev-stat{margin:8px 0;font-size:15px;color:var(--text)}
 .rev-head{font-family:var(--disp);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:16px 0 4px;border-bottom:1px solid var(--line);padding-bottom:5px}
 .rev-line{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:14.5px}
@@ -465,6 +478,13 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 
 /* ---------- celebrations ---------- */
 const DAY_HEX = {chest:"#e05248", back:"#4a82e0", arms:"#e8b62c", shoulders:"#46a85c", legs:"#e9e5db"};
+const FEELS = ["😞","🙁","😐","🙂","😄"];
+function durFmt(s){
+  if(!s.startedAt || !s.finishedAt) return null;
+  const mins = Math.round((s.finishedAt - s.startedAt)/60000);
+  if(mins < 1) return null;
+  return mins >= 60 ? Math.floor(mins/60)+"h "+(mins%60)+"m" : mins+" min";
+}
 const PALETTE = Object.values(DAY_HEX);
 const pick = a => a[Math.floor(Math.random()*a.length)];
 function reducedMotion(){ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
@@ -693,8 +713,11 @@ function plateStrip(){
     const cls = "plate" + (i===cur?" cur":"") + (done?" done":"");
     html += `<button class="${cls}" data-slot="${i}" style="background:${m.color}" aria-label="Slot ${i+1}: ${m.name}${done?" (done)":""}">${m.short}<small>${i+1}</small>${done?'<span class="pcheck">✓</span>':""}</button>`;
   });
+  const restUsed = !!(S.restDay && S.restDay.date);
+  const restingToday = restUsed && S.restDay.date===todayStr();
+  html += `<button class="plate rest${restingToday?" cur":""}${restUsed?" done":""}" id="restPlate" aria-label="Rest day${restUsed?" (used)":""}">R<small>rest</small>${restUsed?'<span class="pcheck">✓</span>':""}</button>`;
   html += "</div>";
-  html += `<div class="cycle-row"><span class="num">${S.cycleDone.length} of ${ROTATION.length} done this cycle</span><span>${S.lastReview?'<button id="lastReviewBtn">last review</button> ':''}<button id="cycleReset">reset cycle</button></span></div>`;
+  html += `<div class="cycle-row"><span class="num">${S.cycleDone.length} of ${ROTATION.length} done · rest ${restUsed?(restingToday?"today":"used"):"available"}</span><span>${S.lastReview?'<button id="lastReviewBtn">last review</button> ':''}<button id="cycleReset">reset cycle</button></span></div>`;
   return html + "</div>";
 }
 
@@ -707,6 +730,15 @@ function viewToday(){
 
   if(S.active){
     return h + viewActiveSession();
+  }
+
+  if(S.restDay && S.restDay.date === todayStr()){
+    h += `<div class="card" style="text-align:center;padding:34px 20px">
+      <h3 style="font-size:26px">Rest day</h3>
+      <div class="sub" style="margin-top:8px">Recovery is where the growth happens. Your rotation picks back up tomorrow with <b>${m.name}</b>.</div>
+    </div>`;
+    h += `<div class="btn-row"><button class="btn ghost" id="undoRestBtn">Actually, train today</button></div>`;
+    return h;
   }
 
   h += `<div class="card">
@@ -797,6 +829,8 @@ function viewActiveSession(){
   h += `<div class="card">
     <h3 style="font-size:17px">Session note</h3>
     <div class="field" style="margin:8px 0 0"><input id="sessNote" placeholder="optional — how did it go? sleep, tweaks, pump..." value="${esc(a.note||"")}"></div>
+    <div class="sub" style="margin-top:12px">How did it feel?</div>
+    <div class="feel-row">${FEELS.map((f,i)=>`<button class="feel-btn ${a.feel===i+1?"on":""}" data-feel="${i+1}">${f}</button>`).join("")}</div>
   </div>`;
   h += `<button class="btn" id="finishBtn">Finish workout</button>`;
   h += `<div class="btn-row"><button class="btn ghost" id="discardBtn">Discard</button></div>`;
@@ -825,7 +859,7 @@ function viewHistory(){
         </div>
         <span class="sub num">${fmtDate(s.date)}</span>
       </div>
-      <div class="sub num" style="margin-top:2px">${s.entries.length} exercises · ${Math.round(vol).toLocaleString()} lb total</div>
+      <div class="sub num" style="margin-top:2px">${s.entries.length} exercises · ${Math.round(vol).toLocaleString()} lb total${s.feel?' · '+FEELS[s.feel-1]:''}</div>
       ${s.note?`<div class="sub" style="margin-top:4px;font-style:italic">"${esc(s.note)}"</div>`:""}
       <div class="detail">${s.entries.map(e=>
         `<div class="exline"><b>${esc(e.name)}</b><br><span class="num">${e.sets.filter(st=>st.reps).map(fmtSet).map(esc).join("  ·  ")||"—"}</span></div>`
@@ -950,11 +984,35 @@ function bind(){
     if(confirm("Start a fresh cycle? All checkmarks clear (your history is untouched).")){
       S.cycleStart = Date.now();
       S.cycleDone = [];
+      S.restDay = null;
       save(); queueSync(); render();
     }
   };
   const lrev = $("#lastReviewBtn");
   if(lrev) lrev.onclick = ()=> openCycleReview(S.lastReview);
+  const rp = $("#restPlate");
+  if(rp) rp.onclick = ()=>{
+    if(S.active){ toast("Finish or discard the current workout first"); return; }
+    const used = S.restDay && S.restDay.date;
+    if(!used){
+      if(confirm("Take today as your rest day? You get one per cycle.")){
+        S.restDay = {date: todayStr()};
+        save(); queueSync(); render();
+      }
+    } else if(S.restDay.date === todayStr()){
+      if(confirm("Cancel today's rest day?")){
+        S.restDay = null;
+        save(); queueSync(); render();
+      }
+    } else {
+      toast("Rest day already used this cycle ("+fmtDate(S.restDay.date)+")");
+    }
+  };
+  const ur = $("#undoRestBtn");
+  if(ur) ur.onclick = ()=>{
+    S.restDay = null;
+    save(); queueSync(); render();
+  };
 
   const start = $("#startBtn");
   if(start) start.onclick = ()=> startWorkout(todaysWorkoutId());
@@ -1035,6 +1093,12 @@ function bind(){
   });
   const sn = $("#sessNote");
   if(sn) sn.onchange = ()=>{ S.active.note = sn.value; save(); };
+  document.querySelectorAll("#app [data-feel]").forEach(b=> b.onclick=()=>{
+    const v = parseInt(b.dataset.feel,10);
+    S.active.feel = S.active.feel===v ? null : v;
+    save();
+    document.querySelectorAll("#app [data-feel]").forEach(x=>x.classList.toggle("on", parseInt(x.dataset.feel,10)===S.active.feel));
+  });
   const disc = $("#discardBtn");
   if(disc) disc.onclick = ()=>{
     if(confirm("Discard this workout? Nothing will be saved.")){ S.active=null; save(); render(); }
@@ -1117,7 +1181,7 @@ function finishWorkout(){
   const noteEl = $("#sessNote");
   if(noteEl) a.note = noteEl.value.trim();
   const vol = a.entries.reduce((t,e)=>t+e.sets.reduce((u,st)=>u+((parseFloat(st.weight)||0)*(parseFloat(st.reps)||0)),0),0);
-  S.sessions.push({id:a.id, workoutId:a.workoutId, date:a.date, startedAt:a.startedAt, finishedAt:a.finishedAt, entries:a.entries, note:a.note||""});
+  S.sessions.push({id:a.id, workoutId:a.workoutId, date:a.date, startedAt:a.startedAt, finishedAt:a.finishedAt, entries:a.entries, note:a.note||"", feel:a.feel||null});
   S.active = null;
   const cycleFinished = recomputeCycle(true);
   S.override = null;
@@ -1145,6 +1209,7 @@ function recomputeCycle(announce){
     S.lastCycle = {start:S.cycleStart, end:Date.now()};
     S.cycleStart = Date.now();
     S.cycleDone = [];
+    S.restDay = null;
     if(announce) toast("Cycle complete — starting a fresh one 🔁");
     save();
     return true;
@@ -1270,7 +1335,10 @@ function openSessionEditor(id){
 }
 function renderSessEditor(s){
   let h = `<h3>Edit session — ${META[s.workoutId].name}, ${fmtDate(s.date)}</h3>
-  <div class="field"><label>Session note</label><input id="sessNoteEdit" value="${esc(s.note||"")}" placeholder="optional"></div>`;
+  <div class="field"><label>Session note</label><input id="sessNoteEdit" value="${esc(s.note||"")}" placeholder="optional"></div>
+  <div class="field"><label>How did it feel?</label>
+    <div class="feel-row" style="margin-top:2px">${FEELS.map((f,i)=>`<button class="feel-btn ${s.feel===i+1?"on":""}" data-feele="${i+1}">${f}</button>`).join("")}</div>
+  </div>`;
   if(s.entries.length){
     h += s.entries.map((e,i)=>`<div class="prog-ex">
       <div><b>${esc(e.name)}</b><div class="meta">${e.sets.map(fmtSetShort).map(esc).join("  |  ")||"no sets"}</div></div>
@@ -1317,6 +1385,12 @@ function renderSessEditor(s){
 
   const ne = $("#sessNoteEdit");
   if(ne) ne.onchange = ()=>{ s.note = ne.value.trim(); save(); queueSync(); };
+  document.querySelectorAll("#modal [data-feele]").forEach(b=> b.onclick=()=>{
+    const v = parseInt(b.dataset.feele,10);
+    s.feel = s.feel===v ? null : v;
+    save(); queueSync();
+    document.querySelectorAll("#modal [data-feele]").forEach(x=>x.classList.toggle("on", parseInt(x.dataset.feele,10)===s.feel));
+  });
 
   $("#addExSel").onchange = ev=>{ $("#customWrap").style.display = ev.target.value==="__custom__" ? "block" : "none"; };
   $("#plusSet").onclick = ()=>{ harvest(); newSets.push({weight:"",reps:"",rpe:""}); drawSets(); };
@@ -1348,10 +1422,12 @@ function renderSessEditor(s){
 /* ---------- cycle review ---------- */
 function cycleSummary(start, end){
   const sess = S.sessions.filter(s=>s.startedAt>=start && s.startedAt<=end);
-  let vol = 0;
+  let vol = 0, durTotal = 0, durN = 0, feelTotal = 0, feelN = 0;
   const perDay = {}, exTop = {};
   sess.forEach(s=>{
     perDay[s.workoutId] = (perDay[s.workoutId]||0)+1;
+    if(s.startedAt && s.finishedAt && s.finishedAt>s.startedAt){ durTotal += (s.finishedAt-s.startedAt); durN++; }
+    if(s.feel){ feelTotal += s.feel; feelN++; }
     s.entries.forEach(e=>{
       e.sets.forEach(st=>{ vol += (parseFloat(st.weight)||0)*(parseFloat(st.reps)||0); });
       const t = e.sets.reduce((b,st)=>{
@@ -1361,7 +1437,9 @@ function cycleSummary(start, end){
       if(t!=null) exTop[e.name] = Math.max(exTop[e.name]||0, t);
     });
   });
-  return {vol:Math.round(vol), n:sess.length, perDay, exTop};
+  const avgDurMin = durN ? Math.round(durTotal/durN/60000) : null;
+  const avgFeel = feelN ? Math.round(feelTotal/feelN*10)/10 : null;
+  return {vol:Math.round(vol), n:sess.length, perDay, exTop, avgDurMin, avgFeel};
 }
 function buildCycleReview(){
   const now = Date.now();
@@ -1385,7 +1463,9 @@ function openCycleReview(r){
   let h = `<h3>Cycle review</h3>
   <div class="rev-stat"><span class="num" style="font-size:26px;font-weight:600">${r.cur.vol.toLocaleString()} lb</span> total volume
     ${pct!=null?`<span class="num" style="color:${pct>=0?"var(--ok)":"var(--bad)"};margin-left:8px">${pct>=0?"+":""}${pct}% vs last cycle</span>`:""}</div>
-  <div class="rev-stat">${r.cur.n} workouts — ${esc(dayLine)}</div>`;
+  <div class="rev-stat">${r.cur.n} workouts — ${esc(dayLine)}</div>
+  ${r.cur.avgDurMin?`<div class="rev-stat">Average workout: <span class="num">${r.cur.avgDurMin} min</span></div>`:""}
+  ${r.cur.avgFeel?`<div class="rev-stat">Average feel: ${FEELS[Math.min(4,Math.max(0,Math.round(r.cur.avgFeel)-1))]} <span class="num">${r.cur.avgFeel}/5</span></div>`:""}`;
   if(r.moved.length){
     h += `<div class="rev-head">Moved up</div>`;
     r.moved.forEach(m=>{ h += `<div class="rev-line"><b>${esc(m.name)}</b><span class="num">${m.from} → ${m.to} lb</span></div>`; });
@@ -1429,7 +1509,7 @@ async function gistFetch(path, opts={}){
   return res.json();
 }
 function payload(){
-  return JSON.stringify({program:S.program, pointer:S.pointer, cycleStart:S.cycleStart, cycleDone:S.cycleDone, sessions:S.sessions, savedAt:S.savedAt}, null, 1);
+  return JSON.stringify({program:S.program, pointer:S.pointer, cycleStart:S.cycleStart, cycleDone:S.cycleDone, restDay:S.restDay||null, lastCycle:S.lastCycle||null, lastReview:S.lastReview||null, sessions:S.sessions, savedAt:S.savedAt}, null, 1);
 }
 async function connectGist(){
   S.sync.token = $("#tokenIn").value.trim();
@@ -1469,6 +1549,9 @@ async function syncNow(announce){
       S.program = remote.program;
       S.pointer = remote.pointer;
       if(remote.cycleStart) S.cycleStart = remote.cycleStart;
+      if(remote.restDay!==undefined) S.restDay = remote.restDay;
+      if(remote.lastCycle) S.lastCycle = remote.lastCycle;
+      if(remote.lastReview) S.lastReview = remote.lastReview;
       S.sessions = remote.sessions.concat(extra).sort((a,b)=>a.startedAt-b.startedAt);
       recomputeCycle(false);
       save();
@@ -1519,8 +1602,13 @@ function buildReportHTML(){
   sessions.forEach(s=>{
     const m = META[s.workoutId];
     const vol = s.entries.reduce((t,e)=>t+e.sets.reduce((u,st)=>u+((parseFloat(st.weight)||0)*(parseFloat(st.reps)||0)),0),0);
+    const dur = durFmt(s);
+    const metaBits = [];
+    if(dur) metaBits.push("Duration: "+dur);
+    if(s.feel) metaBits.push("Feel: "+FEELS[s.feel-1]+" ("+s.feel+"/5)");
+    if(s.note) metaBits.push("Note: "+esc(s.note));
     body += `<h2>${longDate(s.date)} — ${m.name} Day</h2>
-    ${s.note?`<p class="meta">Note: ${esc(s.note)}</p>`:""}
+    ${metaBits.length?`<p class="meta">${metaBits.join(" · ")}</p>`:""}
     <table><thead><tr><th>Exercise</th><th>Set</th><th>Weight (lb)</th><th>Reps</th><th>RPE</th></tr></thead><tbody>`;
     s.entries.forEach(e=>{
       const sets = e.sets.filter(st=>st.reps||st.weight);
