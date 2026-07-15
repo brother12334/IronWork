@@ -310,9 +310,59 @@ body.shake{animation:shakeX .55s both}
   text-shadow:0 0 18px rgba(232,182,44,.9);animation:prUp 1.25s ease-out both;
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* ================= SPLASH ================= */
+#splash{
+  position:fixed;inset:0;z-index:200;background:#0e0b28;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+#splash.bye{opacity:0;transition:opacity .45s ease}
+#splash.bye .splash-inner{transform:scale(1.06);transition:transform .45s ease}
+.splash-inner{display:flex;flex-direction:column;align-items:center;gap:6px}
+.splash-inner svg{overflow:visible;animation:logoPump .55s 1s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes logoPump{0%{transform:translateY(0)}40%{transform:translateY(16px)}75%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+.sp-left,.sp-right,.sp-bar{transform-box:fill-box;transform-origin:center}
+.sp-left{animation:slideL .6s .12s cubic-bezier(.22,1.3,.36,1) both}
+.sp-right{animation:slideR .6s .12s cubic-bezier(.22,1.3,.36,1) both}
+@keyframes slideL{from{transform:translateX(-190px);opacity:0}30%{opacity:1}to{transform:none;opacity:1}}
+@keyframes slideR{from{transform:translateX(190px);opacity:0}30%{opacity:1}to{transform:none;opacity:1}}
+.sp-bar{animation:barIn .35s .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes barIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+.spark{transform-box:fill-box;transform-origin:center;opacity:0}
+.spark1{animation:sparkIn .5s .95s cubic-bezier(.34,1.56,.64,1) both, twinkle 1.5s 1.5s ease-in-out infinite}
+.spark2{animation:sparkIn .5s 1.15s cubic-bezier(.34,1.56,.64,1) both, twinkle 1.5s 1.9s ease-in-out infinite}
+@keyframes sparkIn{from{transform:scale(0) rotate(-120deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes twinkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.88)}}
+.splash-word{
+  font-family:var(--disp);font-size:34px;font-weight:700;text-transform:uppercase;
+  color:#fff;animation:wordIn .6s 1.15s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes wordIn{from{opacity:0;letter-spacing:.6em;transform:translateY(8px)}to{opacity:1;letter-spacing:.18em;transform:none}}
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true">
+  <div class="splash-inner">
+    <svg viewBox="0 0 512 512" width="min(64vw,300px)" height="min(64vw,300px)">
+      <g transform="rotate(-45 256 256)">
+        <g class="sp-left">
+          <rect x="152" y="146" width="36" height="220" rx="18" fill="#fff"/>
+          <rect x="104" y="166" width="36" height="180" rx="18" fill="#fff"/>
+          <rect x="56"  y="226" width="34" height="60"  rx="17" fill="#fff"/>
+        </g>
+        <g class="sp-right">
+          <rect x="324" y="146" width="36" height="220" rx="18" fill="#fff"/>
+          <rect x="372" y="166" width="36" height="180" rx="18" fill="#fff"/>
+          <rect x="422" y="226" width="34" height="60"  rx="17" fill="#fff"/>
+        </g>
+        <rect class="sp-bar" x="196" y="239" width="120" height="34" rx="17" fill="#fff"/>
+      </g>
+      <path class="spark spark1" d="M120 60 C126 106 130 110 176 116 C130 122 126 126 120 172 C114 126 110 122 64 116 C110 110 114 106 120 60 Z" fill="none" stroke="#b08344" stroke-width="6"/>
+      <path class="spark spark2" d="M400 348 C406 394 410 398 456 404 C410 410 406 414 400 460 C394 414 390 410 344 404 C390 398 394 394 400 348 Z" fill="none" stroke="#b08344" stroke-width="6"/>
+    </svg>
+    <div class="splash-word">Iron Log</div>
+  </div>
+</div>
 <div id="app"></div>
 <nav>
   <button data-tab="today" class="on">Today</button>
@@ -1778,6 +1828,18 @@ function importJSON(e){
 }
 
 /* ================= BOOT ================= */
+(function(){
+  const sp = document.getElementById("splash");
+  if(!sp) return;
+  if(reducedMotion()){ sp.remove(); return; }
+  const bye = ()=>{
+    if(!sp.isConnected || sp.classList.contains("bye")) return;
+    sp.classList.add("bye");
+    setTimeout(()=>sp.remove(), 480);
+  };
+  sp.onclick = bye;
+  setTimeout(bye, 2450);
+})();
 render();
 if(S.sync.token && S.sync.gistId){ setSyncStatus("pending"); syncNow(false); }
 document.addEventListener("visibilitychange", ()=>{
