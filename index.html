@@ -66,6 +66,17 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
   opacity:.45;filter:grayscale(.6);transition:all .15s;
 }
 .feel-btn.on{opacity:1;filter:none;border-color:var(--ok);transform:scale(1.12)}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{
+  flex:1;padding:14px;background:var(--card2);border:none;color:var(--dim);cursor:pointer;
+  font-family:var(--disp);font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+}
+.seg button.on{background:var(--text);color:var(--bg)}
+.focus-name{font-size:27px!important;line-height:1.1}
+.card.focus .set,.card.focus .set-labels{grid-template-columns:40px 1fr 1fr 92px 56px}
+.card.focus .set input{padding:16px 8px;font-size:19px}
+.card.focus .set select{padding:16px 2px;font-size:17px}
+.card.focus .chk{width:56px;height:56px;font-size:23px}
 .rev-stat{margin:8px 0;font-size:15px;color:var(--text)}
 .rev-head{font-family:var(--disp);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:16px 0 4px;border-bottom:1px solid var(--line);padding-bottom:5px}
 .rev-line{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:14.5px}
@@ -376,7 +387,7 @@ body.shake{animation:shakeX .55s both}
   <button data-tab="today" class="on">Today</button>
   <button data-tab="history">History</button>
   <button data-tab="program">Program</button>
-  <button data-tab="sync">Sync</button>
+  <button data-tab="sync">Settings</button>
 </nav>
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
 <div id="toast"></div>
@@ -500,6 +511,7 @@ function migrate(){
     S.cycleV2 = true;
     save();
   }
+  if(!S.viewMode) S.viewMode = "regular";
   recomputeCycle(false);
 }
 function inferCycleStart(){
@@ -840,6 +852,7 @@ function bestSet(sets){
 }
 
 function viewActiveSession(){
+  if(S.viewMode === "focus") return viewFocusSession();
   const a = S.active;
   const m = META[a.workoutId];
   let h = `<div class="card">
@@ -897,6 +910,65 @@ function viewActiveSession(){
 function rpeOptions(v){
   const opts = ["","6","6.5","7","7.5","8","8.5","9","9.5","10"];
   return opts.map(o=>`<option value="${o}" ${String(v??"")===o?"selected":""}>${o===""?"RPE":o}</option>`).join("");
+}
+
+/* ---------- focus mode ---------- */
+function viewFocusSession(){
+  const a = S.active;
+  const m = META[a.workoutId];
+  if(a.focusIdx==null) a.focusIdx = 0;
+  a.focusIdx = Math.max(0, Math.min(a.focusIdx, Math.max(0, a.entries.length-1)));
+  const ei = a.focusIdx;
+  const en = a.entries[ei];
+  const atEnd = ei >= a.entries.length-1;
+  let h = `<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+    <div style="display:flex;align-items:center;gap:10px"><span class="dot" style="background:${m.color};width:15px;height:15px"></span><h3 style="font-size:19px">${m.name}</h3></div>
+    <span class="num sub" style="font-size:15px">${a.entries.length?ei+1:0} / ${a.entries.length}</span>
+  </div>`;
+  if(!en){
+    h += `<div class="empty">Nothing left in this session.</div>`;
+    return h + focusFooter(a, true);
+  }
+  const last = lastSetsFor(a.workoutId, en.name);
+  const ll = lastBox(a.workoutId, en.name);
+  h += `<div class="card ex focus">
+    <div class="ex-head"><b class="focus-name">${esc(en.name)}${en.fin?' <span class="alt-badge">finisher</span>':''}</b>
+      <span class="icon-btns ex-ctl"><button data-exskip="${ei}" aria-label="Skip today">✕</button></span>
+    </div>
+    <div class="ex-target" style="margin:2px 0 10px">${en.sets.length}×${esc(en.reps||"")}${en.rpe?' · <span class="rpe-help" title="Tap for what RPE means">'+esc(rpeTxt(en.rpe))+'</span>':""}</div>`;
+  if(ll) h += ll;
+  if(en.note) h += `<div class="ex-note">${esc(en.note)}</div>`;
+  h += `<div class="set-labels"><span>set</span><span>lbs</span><span>reps</span><span class="rpe-help" title="Tap for what RPE means">rpe ⓘ</span><span>✓</span></div>`;
+  en.sets.forEach((st,si)=>{
+    h += `<div class="set">
+      <span class="idx">${si+1}</span>
+      <input inputmode="decimal" data-e="${ei}" data-s="${si}" data-f="weight" value="${st.weight??""}" placeholder="${last&&last[si]&&last[si].weight!=null&&last[si].weight!==""?last[si].weight:"lbs"}">
+      <input inputmode="numeric" data-e="${ei}" data-s="${si}" data-f="reps" value="${st.reps??""}" placeholder="${last&&last[si]&&last[si].reps?last[si].reps:"reps"}">
+      <select data-e="${ei}" data-s="${si}" data-f="rpe">${rpeOptions(st.rpe)}</select>
+      <button class="chk ${st.done?"on":""}" data-e="${ei}" data-s="${si}" data-f="done">✓</button>
+    </div>`;
+  });
+  h += `<div style="display:flex;gap:8px;margin-top:4px">
+    <button class="btn ghost small" data-addset="${ei}">+ set</button>
+    <button class="btn ghost small" data-rmset="${ei}">− set</button>
+  </div></div>`;
+  if(atEnd){
+    h += `<div class="card">
+      <h3 style="font-size:17px">Session note</h3>
+      <div class="field" style="margin:8px 0 0"><input id="sessNote" placeholder="optional — how did it go?" value="${esc(a.note||"")}"></div>
+      <div class="sub" style="margin-top:12px">How did it feel?</div>
+      <div class="feel-row">${FEELS.map((f,i)=>`<button class="feel-btn ${a.feel===i+1?"on":""}" data-feel="${i+1}">${f}</button>`).join("")}</div>
+    </div>`;
+  }
+  return h + focusFooter(a, atEnd);
+}
+function focusFooter(a, atEnd){
+  return `<div class="btn-row" style="margin-top:0">
+    <button class="btn ghost" data-fprev ${a.focusIdx<=0?"disabled":""}>‹ Prev</button>
+    <button class="btn ghost" data-fnext ${atEnd?"disabled":""}>Next ›</button>
+  </div>
+  <button class="btn" id="finishBtn" style="margin-top:10px">Finish workout</button>
+  <div class="btn-row"><button class="btn ghost" id="discardBtn">Discard</button></div>`;
 }
 
 /* ---------- HISTORY ---------- */
@@ -980,7 +1052,15 @@ function viewProgram(){
 /* ---------- SYNC / SETTINGS ---------- */
 function viewSync(){
   const c = S.sync;
-  let h = `<div class="hdr"><h1>Sync</h1></div>
+  let h = `<div class="hdr"><h1>Settings</h1></div>
+  <div class="card">
+    <h3>Preferences</h3>
+    <div class="sub" style="margin:4px 0 10px">Workout view — <b>Regular</b> shows the whole session at once; <b>Focus</b> shows one exercise at a time with bigger controls, built for the gym floor.</div>
+    <div class="seg">
+      <button class="${S.viewMode!=="focus"?"on":""}" data-vmode="regular">Regular</button>
+      <button class="${S.viewMode==="focus"?"on":""}" data-vmode="focus">Focus</button>
+    </div>
+  </div>
   <div class="card">
     <h3>GitHub gist sync</h3>
     <div class="sub" style="margin-bottom:10px">Set this up <b>once per device</b> and syncing is fully automatic from then on — when you open the app, when you come back to it, and after every workout or program change. The dot next to the app name shows status (green = synced). Create a <b>classic token</b> at github.com → Settings → Developer settings → Personal access tokens, with only the <b>gist</b> scope. It's stored only in this browser.</div>
@@ -1145,9 +1225,36 @@ function bind(){
     if(confirm("Skip "+S.active.entries[i].name+" today? It won't appear in this session's log.")){
       harvestActive();
       S.active.entries.splice(i,1);
+      if(S.active.focusIdx!=null) S.active.focusIdx = Math.min(S.active.focusIdx, Math.max(0, S.active.entries.length-1));
       save(); render();
       toast("Skipped — it'll be back next time");
     }
+  });
+  const goFocus = dir=>{
+    harvestActive();
+    S.active.focusIdx = Math.max(0, Math.min((S.active.focusIdx||0)+dir, S.active.entries.length-1));
+    save(); render(); window.scrollTo(0,0);
+  };
+  document.querySelectorAll("[data-fprev]").forEach(b=> b.onclick=()=> goFocus(-1));
+  document.querySelectorAll("[data-fnext]").forEach(b=> b.onclick=()=> goFocus(1));
+  const appEl = $("#app");
+  if(S.active && S.viewMode==="focus"){
+    let sx = null;
+    appEl.ontouchstart = e=>{ sx = e.touches[0].clientX; };
+    appEl.ontouchend = e=>{
+      if(sx==null) return;
+      const dx = e.changedTouches[0].clientX - sx;
+      sx = null;
+      if(Math.abs(dx) > 75) goFocus(dx < 0 ? 1 : -1);
+    };
+  } else {
+    appEl.ontouchstart = null;
+    appEl.ontouchend = null;
+  }
+  document.querySelectorAll("[data-vmode]").forEach(b=> b.onclick=()=>{
+    S.viewMode = b.dataset.vmode;
+    save(); render();
+    toast(S.viewMode==="focus" ? "Focus mode on — one exercise at a time" : "Regular view on");
   });
   const sn = $("#sessNote");
   if(sn) sn.onchange = ()=>{ S.active.note = sn.value; save(); };
