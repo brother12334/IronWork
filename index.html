@@ -342,58 +342,74 @@ body.shake{animation:shakeX .55s both}
   text-shadow:0 0 18px rgba(232,182,44,.9);animation:prUp 1.25s ease-out both;
 }
 
-/* rest stopwatch — blue flow */
+/* rest stopwatch — bumper plate face */
 .rest-full{
-  position:fixed;inset:0;z-index:150;overflow:hidden;
-  background:linear-gradient(168deg,#050e1c 0%,#081f3d 52%,#0a3060 100%);
+  position:fixed;inset:0;z-index:150;background:rgba(19,19,21,.97);
   display:flex;align-items:center;justify-content:center;animation:fadeIn .2s both;
 }
-.rest-flow{position:absolute;border-radius:50%;filter:blur(64px);pointer-events:none}
-.rest-flow.f1{width:72vmin;height:72vmin;background:radial-gradient(circle,rgba(31,111,216,.55),transparent 65%);top:-16%;left:-12%;animation:flowDrift 9s ease-in-out infinite alternate}
-.rest-flow.f2{width:84vmin;height:84vmin;background:radial-gradient(circle,rgba(40,194,255,.4),transparent 62%);bottom:-26%;right:-16%;animation:flowDrift 12s ease-in-out infinite alternate-reverse}
-.rest-flow.f3{width:46vmin;height:46vmin;background:radial-gradient(circle,rgba(90,160,255,.3),transparent 60%);top:38%;left:52%;animation:flowDrift 7.5s ease-in-out infinite alternate}
-@keyframes flowDrift{from{transform:translate(0,0) scale(1)}to{transform:translate(8vmin,-6vmin) scale(1.16)}}
-.rest-stack{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;transform:translateY(-3vh)}
-.rest-label{
-  font-family:var(--disp);font-size:21px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.3em;color:#7fb3e8;text-indent:.3em;
+.pf-wrap{display:flex;flex-direction:column;align-items:center;gap:30px;transform:translateY(-2vh)}
+.pf-plate{
+  position:relative;width:min(86vw,62vh,420px);aspect-ratio:1;border-radius:50%;
+  box-shadow:
+    inset 0 0 0 7px rgba(0,0,0,.32),
+    inset 0 0 0 20px rgba(255,255,255,.07),
+    inset 0 0 0 23px rgba(0,0,0,.18),
+    0 22px 70px rgba(0,0,0,.65);
+  animation:plateSettle .5s cubic-bezier(.24,1.3,.4,1) both;
 }
-.rest-ringwrap{position:relative;display:flex;align-items:center;justify-content:center;padding:9vmin 11vmin}
-.rest-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(90,170,255,.4);animation:ringBreath 3.4s ease-in-out infinite}
-.rest-ring.r2{inset:-16px;border-color:rgba(60,140,235,.2);animation-delay:-1.7s}
-@keyframes ringBreath{0%,100%{transform:scale(.955);opacity:.45}50%{transform:scale(1.045);opacity:1}}
+@keyframes plateSettle{0%{transform:scale(1.35);opacity:0}60%{transform:scale(.97);opacity:1}100%{transform:scale(1)}}
+.pf-tex{
+  position:absolute;inset:5%;border-radius:50%;
+  background:repeating-conic-gradient(rgba(0,0,0,.1) 0deg 3deg, transparent 3deg 30deg);
+  animation:pfSpin 110s linear infinite;
+}
+@keyframes pfSpin{to{transform:rotate(360deg)}}
+.pf-ring{
+  position:absolute;inset:2.6%;border-radius:50%;
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px));
+  background:conic-gradient(rgba(255,255,255,.95) var(--sw,0%), rgba(255,255,255,.14) 0);
+  transition:none;
+}
+.pf-hub{
+  position:absolute;inset:27%;border-radius:50%;background:var(--bg);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.09), 0 0 0 9px rgba(0,0,0,.26);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+.pf-hub.pop{animation:pop .45s cubic-bezier(.34,1.56,.64,1)}
+.pf-label{
+  font-family:var(--disp);font-size:14px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.3em;text-indent:.3em;color:var(--dim);
+}
 .rest-full .rest-time{
   font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;
-  font-size:clamp(64px,21vw,110px);color:#eaf5ff;line-height:1;
-  text-shadow:0 0 46px rgba(64,160,255,.85), 0 0 110px rgba(40,194,255,.4);
+  font-size:clamp(38px,11vw,60px);color:var(--text);line-height:1;letter-spacing:-.02em;
 }
-.rest-stopbtn{
-  width:auto;padding:16px 50px;
-  background:linear-gradient(135deg,#2f8fe8,#28c2ff);color:#041325;
-  box-shadow:0 0 32px rgba(45,150,240,.45);
-}
+.rest-stopbtn{width:auto;padding:16px 54px}
 .rest-x{
   position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;
-  width:50px;height:50px;border-radius:50%;border:1px solid rgba(120,180,255,.35);
-  background:rgba(12,40,75,.55);color:#cfe7ff;font-size:19px;cursor:pointer;z-index:1;
+  width:50px;height:50px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card2);color:var(--text);font-size:19px;cursor:pointer;z-index:1;
 }
 .rest-mini{
   position:fixed;right:12px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:150;
-  display:flex;align-items:center;gap:4px;
-  background:linear-gradient(135deg,#0b2648,#0d3767);border:1px solid rgba(90,160,255,.4);
-  border-radius:999px;padding:6px 7px 6px 6px;box-shadow:0 8px 28px rgba(5,25,55,.7);
+  display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:6px 7px 6px 6px;box-shadow:0 8px 28px rgba(0,0,0,.55);
   animation:fadeIn .18s both;
 }
 .rest-mini .rest-expand{
   display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;
-  color:#dbeeff;padding:5px 7px;
+  color:var(--text);padding:5px 7px;
 }
-.rest-mini .rest-time{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:18px;font-weight:600;color:#dbeeff}
-.rest-dot{width:10px;height:10px;border-radius:50%;background:#28c2ff;box-shadow:0 0 8px rgba(40,194,255,.9);animation:dotPulse 1s ease-in-out infinite}
+.rest-mini .rest-time{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:18px;font-weight:600}
+.rest-dot{
+  width:12px;height:12px;border-radius:50%;
+  box-shadow:inset 0 0 0 3px rgba(0,0,0,.3);
+  animation:dotPulse 1s ease-in-out infinite;
+}
 .rest-stop-mini{
-  width:38px;height:38px;border-radius:50%;border:none;
-  background:linear-gradient(135deg,#2f8fe8,#28c2ff);
-  color:#041325;font-size:14px;cursor:pointer;
+  width:38px;height:38px;border-radius:50%;border:none;background:var(--bad);
+  color:#fff;font-size:14px;cursor:pointer;
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -756,20 +772,26 @@ function showRestUI(min){
   if(!S.active || !S.active.restTimer){ hideRestUI(); return; }
   S.active.restTimer.min = !!min;
   save();
+  const color = DAY_HEX[S.active.workoutId] || "#eceae4";
   let el = document.getElementById("restUI");
   if(!el){ el = document.createElement("div"); el.id = "restUI"; document.body.appendChild(el); }
   if(min){
     el.className = "rest-mini";
-    el.innerHTML = `<button class="rest-expand"><span class="rest-dot"></span><span class="rest-time num">${fmtClock(restElapsed())}</span></button><button class="rest-stop-mini" aria-label="Stop rest">■</button>`;
+    el.innerHTML = `<button class="rest-expand"><span class="rest-dot" style="background:${color}"></span><span class="rest-time num">${fmtClock(restElapsed())}</span></button><button class="rest-stop-mini" aria-label="Stop rest">■</button>`;
     el.querySelector(".rest-expand").onclick = ()=> showRestUI(false);
     el.querySelector(".rest-stop-mini").onclick = stopRest;
   } else {
     el.className = "rest-full";
-    el.innerHTML = `<div class="rest-flow f1"></div><div class="rest-flow f2"></div><div class="rest-flow f3"></div>
-      <button class="rest-x" aria-label="Minimize">✕</button>
-      <div class="rest-stack">
-        <div class="rest-label">Rest</div>
-        <div class="rest-ringwrap"><span class="rest-ring"></span><span class="rest-ring r2"></span><div class="rest-time num">${fmtClock(restElapsed())}</div></div>
+    el.innerHTML = `<button class="rest-x" aria-label="Minimize">✕</button>
+      <div class="pf-wrap">
+        <div class="pf-plate" style="background:${color}">
+          <div class="pf-tex"></div>
+          <div class="pf-ring"></div>
+          <div class="pf-hub">
+            <div class="pf-label">Rest</div>
+            <div class="rest-time num">${fmtClock(restElapsed())}</div>
+          </div>
+        </div>
         <button class="btn rest-stopbtn">Stop rest</button>
       </div>`;
     el.querySelector(".rest-x").onclick = ()=> showRestUI(true);
@@ -778,7 +800,22 @@ function showRestUI(min){
   if(!restTick) restTick = setInterval(()=>{
     const ui = document.getElementById("restUI");
     if(!ui || !S.active || !S.active.restTimer){ hideRestUI(); return; }
-    ui.querySelectorAll(".rest-time").forEach(t=> t.textContent = fmtClock(restElapsed()));
+    const sec = restElapsed();
+    ui.querySelectorAll(".rest-time").forEach(t=> t.textContent = fmtClock(sec));
+    const ring = ui.querySelector(".pf-ring");
+    if(ring) ring.style.setProperty("--sw", ((sec%60)/60*100)+"%");
+    const hub = ui.querySelector(".pf-hub");
+    if(hub){
+      const mins = Math.floor(sec/60);
+      if(hub.dataset.min !== String(mins)){
+        if(hub.dataset.min !== undefined && sec > 0){
+          hub.classList.remove("pop");
+          void hub.offsetWidth;
+          hub.classList.add("pop");
+        }
+        hub.dataset.min = String(mins);
+      }
+    }
   }, 250);
 }
 function hideRestUI(){
@@ -1383,13 +1420,7 @@ function bind(){
       const ei = parseInt(el.dataset.e,10), si = parseInt(el.dataset.s,10), f = el.dataset.f;
       const st = S.active.entries[ei].sets[si];
       st[f] = el.value;
-      if(String(el.value).trim() !== ""){
-        markPriorDone(ei, si);
-        // stopwatch fires only once the user has entered all three: lbs, reps, and RPE
-        const full = String(st.weight||"").trim() && String(st.reps||"").trim() && String(st.rpe||"").trim();
-        const alreadyTiming = S.active.restTimer && S.active.restTimer.e===ei && S.active.restTimer.s===si;
-        if(full && !st.done && !st.rest && !alreadyTiming) startRest(ei, si);
-      }
+      if(String(el.value).trim() !== "") markPriorDone(ei, si);
       save();
     };
   });
@@ -1411,8 +1442,8 @@ function bind(){
         const lastW = lastArr && lastArr[s] ? parseFloat(lastArr[s].weight) : NaN;
         const curW = parseFloat(st.weight);
         if(!isNaN(curW) && !isNaN(lastW) && curW > lastW) prFloat(el);
-        // stopwatch only when the user's lbs + reps + RPE are all in
-        if(String(st.weight||"").trim() && String(st.reps||"").trim() && String(st.rpe||"").trim() && !st.rest) startRest(parseInt(e,10), parseInt(s,10));
+        // the ✓ is the one and only stopwatch trigger
+        startRest(parseInt(e,10), parseInt(s,10));
       } else {
         // unchecking: cancel its running timer and clear its recorded rest
         const rt = S.active.restTimer;
@@ -2020,9 +2051,6 @@ function buildReportHTML(){
     const dur = durFmt(s);
     const metaBits = [];
     if(dur) metaBits.push("Duration: "+dur);
-    const rests = [];
-    s.entries.forEach(e=>e.sets.forEach(st=>{ if(st.rest) rests.push(st.rest); }));
-    if(rests.length) metaBits.push("Avg rest: "+fmtClock(Math.round(rests.reduce((a,b)=>a+b,0)/rests.length)));
     if(s.feel) metaBits.push("Feel: "+FEELS[s.feel-1]+" ("+s.feel+"/5)");
     const ci = (S.checkins||{})[s.date];
     if(ci){
@@ -2033,7 +2061,7 @@ function buildReportHTML(){
     if(s.note) metaBits.push("Note: "+esc(s.note));
     body += `<h2>${longDate(s.date)} — ${m.name} Day</h2>
     ${metaBits.length?`<p class="meta">${metaBits.join(" · ")}</p>`:""}
-    <table><thead><tr><th>Exercise</th><th>Set</th><th>Weight (lb)</th><th>Reps</th><th>RPE</th></tr></thead><tbody>`;
+    <table><thead><tr><th>Exercise</th><th>Set</th><th>Weight (lb)</th><th>Reps</th><th>RPE</th><th>Rest</th></tr></thead><tbody>`;
     s.entries.forEach(e=>{
       const sets = e.sets.filter(st=>st.reps||st.weight);
       if(!sets.length) return;
@@ -2042,7 +2070,8 @@ function buildReportHTML(){
           <td class="c">${i+1}</td>
           <td class="c">${st.weight!=null&&st.weight!==""?esc(st.weight):"bodyweight"}</td>
           <td class="c">${esc(st.reps||"")}</td>
-          <td class="c">${esc(st.rpe||"—")}</td></tr>`;
+          <td class="c">${esc(st.rpe||"—")}</td>
+          <td class="c">${st.rest?esc(fmtClock(st.rest)):"—"}</td></tr>`;
       });
     });
     body += `</tbody></table>`;
