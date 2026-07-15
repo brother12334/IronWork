@@ -73,6 +73,21 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
 }
 .seg button.on{background:var(--text);color:var(--bg)}
 .focus-name{font-size:27px!important;line-height:1.1}
+.bar-wrap{display:flex;align-items:center;justify-content:center;margin:16px 0 6px;min-height:70px}
+.bar-end{height:8px;width:22px;background:#6d6d75;border-radius:4px;flex-shrink:0}
+.bar-shaft{height:8px;background:#6d6d75;border-radius:4px;flex:0 1 90px;min-width:34px}
+.collar{width:9px;height:24px;background:#8a8a92;border-radius:3px;flex-shrink:0;margin:0 1px}
+.sleeve{display:flex;align-items:center;gap:3px}
+.sleeve.left{flex-direction:row-reverse}
+.bplate{border-radius:3px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.28);flex-shrink:0}
+.bplate.ghost{background:transparent!important;box-shadow:none;border:2px dashed var(--faint);animation:ghostPulse 1.3s ease-in-out infinite}
+@keyframes ghostPulse{50%{opacity:.3}}
+.bplate.drop{animation:plateDrop .5s cubic-bezier(.24,1.3,.4,1) both}
+@keyframes plateDrop{0%{transform:translateY(-72px) rotate(-14deg);opacity:0}55%{transform:translateY(5px) rotate(2deg);opacity:1}80%{transform:translateY(-3px)}100%{transform:none;opacity:1}}
+.loader-label{text-align:center;color:var(--faint);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+.fullbar .bar-shaft,.fullbar .bar-end{background:#8f8f98}
+.fullbar{animation:barGlow 1.6s ease-in-out infinite}
+@keyframes barGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(236,234,228,.15))}50%{filter:drop-shadow(0 0 14px rgba(236,234,228,.5))}}
 .card.focus .set,.card.focus .set-labels{grid-template-columns:40px 1fr 1fr 92px 56px}
 .card.focus .set input{padding:16px 8px;font-size:19px}
 .card.focus .set select{padding:16px 2px;font-size:17px}
@@ -913,6 +928,41 @@ function rpeOptions(v){
 }
 
 /* ---------- focus mode ---------- */
+function plateLoaderHTML(a){
+  const total = a.entries.length;
+  const doneMain = a.entries.filter(e=>!e.fin && e.sets.length && e.sets.every(st=>st.done)).length;
+  const doneFin = a.entries.filter(e=>e.fin && e.sets.length && e.sets.every(st=>st.done)).length;
+  const doneEx = doneMain + doneFin;
+  const isNew = (a._loaded!=null && doneEx > a._loaded);
+  a._loaded = doneEx;
+  const full = total>0 && doneEx>=total;
+  const color = DAY_HEX[a.workoutId] || "#eceae4";
+  const pw = Math.max(7, Math.min(12, Math.floor(120/Math.max(1,total))));
+  const sleeve = side=>{
+    let out = "";
+    for(let i=0;i<doneEx;i++){
+      const h = Math.max(30, 62 - i*5);
+      const c = i < doneMain ? color : "#9b99a0";
+      const drop = (isNew && i===doneEx-1) ? " drop" : "";
+      out += `<span class="bplate${drop}" style="width:${pw}px;height:${h}px;background:${c}"></span>`;
+    }
+    if(!full){
+      const h = Math.max(30, 62 - doneEx*5);
+      out += `<span class="bplate ghost" style="width:${pw}px;height:${h}px"></span>`;
+    }
+    return out;
+  };
+  return `<div class="bar-wrap${full?" fullbar":""}">
+    <span class="bar-end"></span>
+    <span class="sleeve left">${sleeve("l")}</span>
+    <span class="collar"></span>
+    <span class="bar-shaft"></span>
+    <span class="collar"></span>
+    <span class="sleeve right">${sleeve("r")}</span>
+    <span class="bar-end"></span>
+  </div>
+  <div class="loader-label num">${full ? "Bar fully loaded — finish strong" : doneEx+" of "+total+" plates loaded"}</div>`;
+}
 function viewFocusSession(){
   const a = S.active;
   const m = META[a.workoutId];
@@ -921,9 +971,12 @@ function viewFocusSession(){
   const ei = a.focusIdx;
   const en = a.entries[ei];
   const atEnd = ei >= a.entries.length-1;
-  let h = `<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
-    <div style="display:flex;align-items:center;gap:10px"><span class="dot" style="background:${m.color};width:15px;height:15px"></span><h3 style="font-size:19px">${m.name}</h3></div>
-    <span class="num sub" style="font-size:15px">${a.entries.length?ei+1:0} / ${a.entries.length}</span>
+  let h = `<div class="card" style="padding:12px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px"><span class="dot" style="background:${m.color};width:15px;height:15px"></span><h3 style="font-size:19px">${m.name}</h3></div>
+      <span class="num sub" style="font-size:15px">${a.entries.length?ei+1:0} / ${a.entries.length}</span>
+    </div>
+    ${plateLoaderHTML(a)}
   </div>`;
   if(!en){
     h += `<div class="empty">Nothing left in this session.</div>`;
@@ -1168,7 +1221,9 @@ function bind(){
   document.querySelectorAll(".set .chk").forEach(el=>{
     el.onclick = ()=>{
       const {e,s} = el.dataset;
-      const st = S.active.entries[e].sets[s];
+      const entry = S.active.entries[e];
+      const wasComplete = entry.sets.length && entry.sets.every(x=>x.done);
+      const st = entry.sets[s];
       st.done = !st.done;
       if(st.done){
         const row = el.parentElement;
@@ -1177,13 +1232,23 @@ function bind(){
         if(!st.weight && wIn.placeholder && wIn.placeholder!=="lbs"){ st.weight=wIn.placeholder; wIn.value=wIn.placeholder; }
         if(!st.reps && rIn.placeholder && rIn.placeholder!=="reps"){ st.reps=rIn.placeholder; rIn.value=rIn.placeholder; }
         // PR spark: heavier than the same set last time?
-        const lastArr = lastSetsFor(S.active.workoutId, S.active.entries[e].name);
+        const lastArr = lastSetsFor(S.active.workoutId, entry.name);
         const lastW = lastArr && lastArr[s] ? parseFloat(lastArr[s].weight) : NaN;
         const curW = parseFloat(st.weight);
         if(!isNaN(curW) && !isNaN(lastW) && curW > lastW) prFloat(el);
       }
       el.classList.toggle("on", st.done);
       save();
+      const isComplete = entry.sets.length && entry.sets.every(x=>x.done);
+      if(S.viewMode==="focus" && wasComplete !== isComplete){
+        // completion flipped → the barbell gains/loses a plate
+        const doShake = isComplete;
+        render();
+        if(doShake && !reducedMotion()){
+          document.body.classList.add("shake");
+          setTimeout(()=>document.body.classList.remove("shake"), 600);
+        }
+      }
     };
   });
   document.querySelectorAll("[data-addset]").forEach(b=> b.onclick=()=>{
