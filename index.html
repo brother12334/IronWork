@@ -472,7 +472,7 @@ body.shake{animation:shakeX .55s both}
       <path class="spark spark2" d="M400 348 C406 394 410 398 456 404 C410 410 406 414 400 460 C394 414 390 410 344 404 C390 398 394 394 400 348 Z" fill="none" stroke="#b08344" stroke-width="6"/>
     </svg>
     <div class="splash-word">Iron Log</div>
-    <div class="splash-ver">v1.0</div>
+    <div class="splash-ver">v1.1</div>
   </div>
 </div>
 <div id="app"></div>
@@ -487,7 +487,7 @@ body.shake{animation:shakeX .55s both}
 
 <script>
 "use strict";
-const APP_VERSION = "1.0";
+const APP_VERSION = "1.1";
 /* ================= DATA ================= */
 const LS_KEY = "ironlog.v1";
 const GIST_FILE = "ironlog-data.json";
@@ -585,9 +585,9 @@ function migrate(){
     ch.push(Object.assign(ex("Guillotine Press",3,"8-10","",30,""), {
       alt: ex("Chest Dips",3,"5-8","",null,"bodyweight — log added lbs if weighted")
     }));
-    save();
+    saveQuiet();
   }
-  if(S.program && !S.program.finisher){ S.program.finisher = defaultFinisher(); save(); }
+  if(S.program && !S.program.finisher){ S.program.finisher = defaultFinisher(); saveQuiet(); }
   if(S.program && S.program.finisher){
     const f = S.program.finisher;
     const r2 = f.findIndex(e=>/round 2/i.test(e.name||""));
@@ -595,15 +595,15 @@ function migrate(){
       f.splice(r2,1);
       const crunch = f.find(e=>/cable ab crunch/i.test(e.name||""));
       if(crunch && crunch.sets < 2) crunch.sets = 2;
-      save();
+      saveQuiet();
     }
   }
-  if(S.sync && S.sync.repo===undefined){ S.sync.repo=""; S.sync.branch="main"; S.sync.lastRepo=null; save(); }
+  if(S.sync && S.sync.repo===undefined){ S.sync.repo=""; S.sync.branch="main"; S.sync.lastRepo=null; saveQuiet(); }
   if(!Array.isArray(S.cycleDone)) S.cycleDone = [];
   if(!S.cycleStart || !S.cycleV2){
     S.cycleStart = inferCycleStart();
     S.cycleV2 = true;
-    save();
+    saveQuiet();
   }
   if(!S.viewMode) S.viewMode = "regular";
   if(!S.checkins) S.checkins = {};
@@ -631,9 +631,17 @@ function inferCycleStart(){
   const d = new Date(); d.setHours(0,0,0,0);
   return d.getTime();
 }
-function save(){
-  S.savedAt = Date.now();
+function persist(){
   localStorage.setItem(LS_KEY, JSON.stringify(S));
+}
+function save(){
+  // marks a real user-driven change: advance savedAt so this device wins the merge
+  S.savedAt = Date.now();
+  persist();
+}
+function saveQuiet(){
+  // persist to disk WITHOUT claiming a newer change (migrations, boot housekeeping)
+  persist();
 }
 
 /* ================= HELPERS ================= */
@@ -1703,7 +1711,7 @@ function recomputeCycle(announce){
     S.cycleDone = [];
     S.restDay = null;
     if(announce) toast("Cycle complete — starting a fresh one 🔁");
-    save();
+    save();   // real transition — mark as a change worth syncing
     return true;
   } else {
     S.cycleDone = done;
@@ -1715,7 +1723,7 @@ function recomputeCycle(announce){
       if(!S.cycleDone.includes(idx)){ S.pointer = idx; break; }
     }
   }
-  save();
+  saveQuiet();   // derived recomputation — don't claim a newer change on every boot
   return false;
 }
 function openPicker(){
@@ -2091,7 +2099,8 @@ async function syncNow(announce){  if(!S.sync.token || !S.sync.gistId){ if(annou
       S.deleted = [...tomb];
       S.sessions = mergeSessions(S.sessions, remote.sessions, tomb);
       reconcileCycleAfterMerge(remote.cycleStart);
-      save();
+      S.savedAt = remote.savedAt;   // adopt remote's stamp; we merged its newer state
+      saveQuiet();
     } else if(remote){
       const tomb = new Set([...(S.deleted||[]), ...(remote.deleted||[])]);
       S.checkins = Object.assign({}, remote.checkins||{}, S.checkins||{});
@@ -2099,7 +2108,7 @@ async function syncNow(announce){  if(!S.sync.token || !S.sync.gistId){ if(annou
       S.deleted = [...tomb];
       S.sessions = mergeSessions(S.sessions, remote.sessions||[], tomb);
       reconcileCycleAfterMerge(remote.cycleStart);
-      save();
+      saveQuiet();   // keep our own (newer or equal) savedAt
     }
     await gistFetch("gists/"+S.sync.gistId, {method:"PATCH", body: JSON.stringify({files:{[GIST_FILE]:{content:payload()}}})});
     S.sync.lastSync = Date.now();
