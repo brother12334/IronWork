@@ -72,6 +72,8 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
   width:100%;padding:12px 8px;border-radius:10px;border:1px solid var(--line);
   background:var(--card2);color:var(--text);font-family:var(--mono);font-size:16px;text-align:center;appearance:none;
 }
+.rest-note{margin:2px 0 12px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card2);font-size:13px;color:var(--dim);text-align:center}
+.linklike{background:none;border:none;color:var(--dim);text-decoration:underline;cursor:pointer;font-size:13px;padding:0}
 .restore-card{border:1px solid var(--arms);background:linear-gradient(180deg,rgba(232,182,44,.09),transparent)}
 .restore-card h3{color:var(--arms)}
 .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -474,7 +476,7 @@ body.shake{animation:shakeX .55s both}
       <path class="spark spark2" d="M400 348 C406 394 410 398 456 404 C410 410 406 414 400 460 C394 414 390 410 344 404 C390 398 394 394 400 348 Z" fill="none" stroke="#b08344" stroke-width="6"/>
     </svg>
     <div class="splash-word">Iron Log</div>
-    <div class="splash-ver">v1.3</div>
+    <div class="splash-ver">v1.4</div>
   </div>
 </div>
 <div id="app"></div>
@@ -489,7 +491,7 @@ body.shake{animation:shakeX .55s both}
 
 <script>
 "use strict";
-const APP_VERSION = "1.3";
+const APP_VERSION = "1.4";
 /* ================= DATA ================= */
 const LS_KEY = "ironlog.v1";
 const GIST_FILE = "ironlog-data.json";
@@ -1042,6 +1044,11 @@ function viewToday(){
     return h;
   }
 
+  // rest day was taken earlier this cycle — note it so it never looks "lost"
+  if(S.restDay && S.restDay.date){
+    h += `<div class="rest-note">Rest day this cycle: <b>${fmtDate(S.restDay.date)}</b> · <button id="clearRestBtn" class="linklike">clear</button></div>`;
+  }
+
   h += `<div class="card">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
       <span class="dot" style="background:${m.color};width:17px;height:17px"></span>
@@ -1422,6 +1429,13 @@ function bind(){
   if(ur) ur.onclick = ()=>{
     S.restDay = null;
     save(); queueSync(); render();
+  };
+  const crb = $("#clearRestBtn");
+  if(crb) crb.onclick = ()=>{
+    if(confirm("Clear this cycle's rest day? You'll be able to take one again.")){
+      S.restDay = null;
+      save(); queueSync(); render();
+    }
   };
 
   const start = $("#startBtn");
