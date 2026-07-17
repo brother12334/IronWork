@@ -72,6 +72,8 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
   width:100%;padding:12px 8px;border-radius:10px;border:1px solid var(--line);
   background:var(--card2);color:var(--text);font-family:var(--mono);font-size:16px;text-align:center;appearance:none;
 }
+.restore-card{border:1px solid var(--arms);background:linear-gradient(180deg,rgba(232,182,44,.09),transparent)}
+.restore-card h3{color:var(--arms)}
 .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .seg button{
   flex:1;padding:14px;background:var(--card2);border:none;color:var(--dim);cursor:pointer;
@@ -472,7 +474,7 @@ body.shake{animation:shakeX .55s both}
       <path class="spark spark2" d="M400 348 C406 394 410 398 456 404 C410 410 406 414 400 460 C394 414 390 410 344 404 C390 398 394 394 400 348 Z" fill="none" stroke="#b08344" stroke-width="6"/>
     </svg>
     <div class="splash-word">Iron Log</div>
-    <div class="splash-ver">v1.1</div>
+    <div class="splash-ver">v1.2</div>
   </div>
 </div>
 <div id="app"></div>
@@ -487,7 +489,7 @@ body.shake{animation:shakeX .55s both}
 
 <script>
 "use strict";
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 /* ================= DATA ================= */
 const LS_KEY = "ironlog.v1";
 const GIST_FILE = "ironlog-data.json";
@@ -1014,6 +1016,16 @@ function viewToday(){
   const wid = todaysWorkoutId();
   const m = META[wid];
   let h = `<div class="hdr"><h1>Iron Log${syncDot()}</h1><span class="date num">${fmtDate(todayStr())}</span></div>`;
+
+  // fresh install / new home-screen app: data lives safely in the gist, guide them to restore it
+  if(!S.active && S.sessions.length===0 && !S.sync.gistId){
+    h += `<div class="card restore-card">
+      <h3>Have you used Iron Log before?</h3>
+      <div class="sub" style="margin:6px 0 12px">If you set up gist sync on another device (or this one), your workouts are saved safely in the cloud — not lost. Connect the same GitHub token in Settings to pull everything back.</div>
+      <button class="btn small" id="goRestore">Restore from sync</button>
+    </div>`;
+  }
+
   h += plateStrip();
 
   if(S.active){
@@ -1416,6 +1428,13 @@ function bind(){
 
   const swap = $("#swapBtn");
   if(swap) swap.onclick = openPicker;
+  const goR = $("#goRestore");
+  if(goR) goR.onclick = ()=>{
+    TAB = "sync";
+    document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on", x.dataset.tab==="sync"));
+    render();
+    setTimeout(()=>{ const t=$("#tokenIn"); if(t) t.focus(); }, 60);
+  };
 
   ["ciW","ciS","ciE"].forEach(id=>{
     const el = $("#"+id);
