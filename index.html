@@ -613,8 +613,10 @@ function inferCycleStart(){
   const now = Date.now();
   let anchor = null, total = 0;
   const sess = [...S.sessions].sort((a,b)=>b.startedAt-a.startedAt);
+  const floor = (S.lastCycle && S.lastCycle.end) ? S.lastCycle.end : 0;
   for(const s of sess){
     if(now - s.startedAt > 9*24*3600e3) break;   // older than ~9 days → previous cycle
+    if(s.startedAt <= floor) break;              // belongs to an already-completed cycle
     if(!(s.workoutId in cap)) continue;
     if(cap[s.workoutId] === 0) break;            // that day is already full → cycle boundary
     if(total >= ROTATION.length) break;
@@ -1239,6 +1241,7 @@ function viewHistory(){
         `<div class="exline"><b>${esc(e.name)}</b><br><span class="num">${e.sets.filter(st=>st.reps).map(fmtSet).map(esc).join("  ·  ")||"—"}</span></div>`
       ).join("")}
       <div class="btn-row" style="margin-top:8px">
+        ${s.date===todayStr()?`<button class="btn ghost small" data-resumesess="${s.id}">Resume</button>`:""}
         <button class="btn ghost small" data-editsess="${s.id}">Edit session</button>
         <button class="btn ghost small danger" data-delsess="${s.id}">Delete session</button>
       </div></div>
@@ -1553,11 +1556,12 @@ function bind(){
   if(docB) docB.onclick = downloadDoc;
 
   document.querySelectorAll(".sess").forEach(c=>{    c.onclick = e=>{
-      if(e.target.dataset.delsess || e.target.dataset.editsess) return;
+      if(e.target.dataset.delsess || e.target.dataset.editsess || e.target.dataset.resumesess) return;
       c.classList.toggle("open");
     };
   });
   document.querySelectorAll("[data-editsess]").forEach(b=> b.onclick=()=> openSessionEditor(b.dataset.editsess));
+  document.querySelectorAll("[data-resumesess]").forEach(b=> b.onclick=()=> resumeSession(b.dataset.resumesess));
   document.querySelectorAll("[data-delsess]").forEach(b=> b.onclick=()=>{
     if(confirm("Delete this session permanently?")){
       S.sessions = S.sessions.filter(s=>s.id!==b.dataset.delsess);
@@ -1613,11 +1617,45 @@ function startWorkout(wid){
   };
   save(); render();
 }
+function resumeSession(id){
+  const idx = S.sessions.findIndex(s=>s.id===id);
+  if(idx<0) return;
+  const s = S.sessions[idx];
+  if(s.date !== todayStr()){ toast("You can only resume today's workout"); return; }
+  if(S.active && !confirm("You have a workout in progress — replace it with this one?")) return;
+  // pull the finished session back into an active, editable session
+  S.active = {
+    id: s.id,
+    workoutId: s.workoutId,
+    date: s.date,
+    startedAt: s.startedAt,
+    note: s.note||"",
+    feel: s.feel||null,
+    focusIdx: 0,
+    restTimer: null,
+    entries: s.entries.map(e=>({
+      name: e.name, reps: e.reps, rpe: e.rpe, note: e.note, fin: e.fin||undefined,
+      sets: e.sets.map(st=>Object.assign({}, st))
+    }))
+  };
+  S.sessions.splice(idx,1); // remove from history while it's live again
+  recomputeCycle(false);
+  save(); queueSync();
+  TAB = "today";
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on", x.dataset.tab==="today"));
+  render();
+  window.scrollTo(0,0);
+  toast("Workout resumed — finish again when you're done");
+}
 function finishWorkout(){
   const a = S.active;
-  if(a.restTimer){ a.restTimer = null; hideRestUI(); }
   const logged = a.entries.some(e=>e.sets.some(st=>st.done || st.reps));
-  if(!logged && !confirm("No sets logged — finish anyway?")) return;
+  if(!logged){
+    if(!confirm("No sets logged yet — finish anyway?")) return;
+  } else if(!confirm("Complete your workout? This saves the session to your history.")){
+    return;
+  }
+  if(a.restTimer){ a.restTimer = null; hideRestUI(); }
   a.entries.forEach(e=>{ e.sets = e.sets.filter(st=>st.done || st.reps || st.weight); });
   a.entries = a.entries.filter(e=>e.sets.length);
   a.finishedAt = Date.now();
@@ -1625,7 +1663,11 @@ function finishWorkout(){
   const noteEl = $("#sessNote");
   if(noteEl) a.note = noteEl.value.trim();
   const vol = a.entries.reduce((t,e)=>t+e.sets.reduce((u,st)=>u+((parseFloat(st.weight)||0)*(parseFloat(st.reps)||0)),0),0);
-  S.sessions.push({id:a.id, workoutId:a.workoutId, date:a.date, startedAt:a.startedAt, finishedAt:a.finishedAt, entries:a.entries, note:a.note||"", feel:a.feel||null});
+  const sessObj = {id:a.id, workoutId:a.workoutId, date:a.date, startedAt:a.startedAt, finishedAt:a.finishedAt, entries:a.entries, note:a.note||"", feel:a.feel||null};
+  const existing = S.sessions.findIndex(x=>x.id===a.id);
+  if(existing>=0) S.sessions.splice(existing,1);
+  S.sessions.push(sessObj);
+  S.sessions.sort((x,y)=>x.startedAt-y.startedAt);
   S.active = null;
   const cycleFinished = recomputeCycle(true);
   S.override = null;
@@ -1976,8 +2018,19 @@ async function connectGist(){
     }
   }catch(err){ toast("GitHub error: "+err.message); }
 }
-async function syncNow(announce){
-  if(!S.sync.token || !S.sync.gistId){ if(announce) toast("Connect first"); return; }
+function reconcileCycleAfterMerge(remoteCycleStart){
+  // adopt the earliest reasonable anchor so no session belonging to the
+  // current cycle gets stranded outside the window after a merge
+  const inferred = inferCycleStart();
+  const candidates = [inferred];
+  if(remoteCycleStart) candidates.push(remoteCycleStart);
+  if(S.cycleStart) candidates.push(S.cycleStart);
+  const floor = (S.lastCycle && S.lastCycle.end) ? S.lastCycle.end + 1 : 0;
+  const valid = candidates.filter(c=>c >= floor);
+  S.cycleStart = valid.length ? Math.min(...valid) : inferred;
+  recomputeCycle(false);
+}
+async function syncNow(announce){  if(!S.sync.token || !S.sync.gistId){ if(announce) toast("Connect first"); return; }
   try{
     const g = await gistFetch("gists/"+S.sync.gistId);
     const f = g.files && g.files[GIST_FILE];
@@ -1992,13 +2045,12 @@ async function syncNow(announce){
       const extra = S.sessions.filter(s=>!ids.has(s.id));
       S.program = remote.program;
       S.pointer = remote.pointer;
-      if(remote.cycleStart) S.cycleStart = remote.cycleStart;
       if(remote.restDay!==undefined) S.restDay = remote.restDay;
       if(remote.lastCycle) S.lastCycle = remote.lastCycle;
       if(remote.lastReview) S.lastReview = remote.lastReview;
       S.checkins = Object.assign({}, S.checkins||{}, remote.checkins||{});
       S.sessions = remote.sessions.concat(extra).sort((a,b)=>a.startedAt-b.startedAt);
-      recomputeCycle(false);
+      reconcileCycleAfterMerge(remote.cycleStart);
       save();
     } else if(remote){
       const ids = new Set(S.sessions.map(s=>s.id));
@@ -2006,7 +2058,7 @@ async function syncNow(announce){
       S.checkins = Object.assign({}, remote.checkins||{}, S.checkins||{});
       if(extra.length){
         S.sessions = S.sessions.concat(extra).sort((a,b)=>a.startedAt-b.startedAt);
-        recomputeCycle(false);
+        reconcileCycleAfterMerge(remote.cycleStart);
         save();
       }
     }
