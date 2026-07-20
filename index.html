@@ -155,6 +155,11 @@ h1,h2,h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;m
   color:var(--text);background:rgba(255,255,255,.07);
   padding:5px 10px;border-radius:8px;white-space:nowrap;
 }
+.rl-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+.rl-chip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 6px 5px 12px;font-family:var(--mono);font-size:13px;color:var(--dim)}
+.rl-chip button{background:var(--line);border:none;color:var(--text);width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1}
+.ss-badge{display:inline-block;font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--bg);background:var(--dim);border-radius:5px;padding:2px 6px;vertical-align:middle;margin-left:5px}
+.ss-card{border-left:3px solid var(--dim)}
 .alt-badge{
   display:inline-block;font:11.5px var(--mono);color:var(--bg);background:var(--dim);
   border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle;
@@ -399,7 +404,11 @@ body.shake{animation:shakeX .55s both}
   position:fixed;right:12px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:150;
   display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:6px 7px 6px 6px;box-shadow:0 8px 28px rgba(0,0,0,.55);
-  animation:fadeIn .18s both;
+  animation:restPillIn .55s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes restPillIn{
+  0%{opacity:0;transform:translateY(14px) scale(.9)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
 }
 .rest-mini .rest-expand{
   display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;
@@ -476,7 +485,7 @@ body.shake{animation:shakeX .55s both}
       <path class="spark spark2" d="M400 348 C406 394 410 398 456 404 C410 410 406 414 400 460 C394 414 390 410 344 404 C390 398 394 394 400 348 Z" fill="none" stroke="#b08344" stroke-width="6"/>
     </svg>
     <div class="splash-word">Iron Log</div>
-    <div class="splash-ver">v1.4</div>
+    <div class="splash-ver">v1.6</div>
   </div>
 </div>
 <div id="app"></div>
@@ -491,7 +500,7 @@ body.shake{animation:shakeX .55s both}
 
 <script>
 "use strict";
-const APP_VERSION = "1.4";
+const APP_VERSION = "1.6";
 /* ================= DATA ================= */
 const LS_KEY = "ironlog.v1";
 const GIST_FILE = "ironlog-data.json";
@@ -560,8 +569,9 @@ function defaultProgram(){
 }
 function defaultFinisher(){
   return [
-    ex("Cable Ab Crunch",2,"10-12","9-10",150,""),
-    ex("Leg Raises",1,"8-10","9-10",null,"bodyweight")
+    Object.assign(ex("Cable Ab Crunch",1,"10-12","9-10",150,""), {superset:"abs"}),
+    Object.assign(ex("Leg Raises",1,"8-10","9-10",null,"bodyweight"), {superset:"abs"}),
+    Object.assign(ex("Cable Ab Crunch",1,"10-12","9-10",150,""), {superset:"abs", supersetEnd:true})
   ];
 }
 
@@ -597,8 +607,11 @@ function migrate(){
     const r2 = f.findIndex(e=>/round 2/i.test(e.name||""));
     if(r2 > -1){
       f.splice(r2,1);
-      const crunch = f.find(e=>/cable ab crunch/i.test(e.name||""));
-      if(crunch && crunch.sets < 2) crunch.sets = 2;
+      saveQuiet();
+    }
+    // upgrade the flat crunch/leg-raise finisher to the crunch→legraise→crunch superset
+    if(!f.some(e=>e.superset)){
+      S.program.finisher = defaultFinisher();
       saveQuiet();
     }
   }
@@ -611,7 +624,13 @@ function migrate(){
   }
   if(!S.viewMode) S.viewMode = "regular";
   if(!S.checkins) S.checkins = {};
+  if(!Array.isArray(S.restLog)) S.restLog = [];
   if(!Array.isArray(S.deleted)) S.deleted = [];
+  // restore single restDay from any list form left by an earlier build
+  if(Array.isArray(S.restDays)){
+    if(!S.restDay && S.restDays.length) S.restDay = {date: S.restDays[S.restDays.length-1]};
+    delete S.restDays;
+  }
   recomputeCycle(false);
 }
 function inferCycleStart(){
@@ -776,9 +795,9 @@ function recordRestIfRunning(){
 }
 function startRest(e, s){
   recordRestIfRunning();
-  S.active.restTimer = {start: Date.now(), e, s, min: false};
+  S.active.restTimer = {start: Date.now(), e, s, min: true};
   save();
-  showRestUI(false);
+  showRestUI(true);
 }
 function stopRest(){
   const sec = restElapsed();
@@ -1107,8 +1126,8 @@ function viewActiveSession(){
     if(en.fin && !finLab){ h += `<div class="fin-label">Finisher</div>`; finLab = true; }
     const last = lastSetsFor(a.workoutId, en.name);
     const ll = lastBox(a.workoutId, en.name);
-    h += `<div class="card ex">
-      <div class="ex-head"><b>${esc(en.name)}</b>
+    h += `<div class="card ex${en.superset?' ss-card':''}">
+      <div class="ex-head"><b>${esc(en.name)}${en.superset?' <span class="ss-badge">superset</span>':''}</b>
         <span style="display:flex;align-items:center;gap:8px">
           <span class="ex-target">${en.sets.length}×${esc(en.reps||"")}${en.rpe?' · <span class="rpe-help" title="Tap for what RPE means">'+esc(rpeTxt(en.rpe))+'</span>':""}</span>
           <span class="icon-btns ex-ctl">
@@ -1255,6 +1274,16 @@ function viewHistory(){
   h += `<div class="btn-row" style="margin-bottom:14px">
     <button class="btn ghost small" id="reportBtn">Print / PDF report</button>
     <button class="btn ghost small" id="docBtn">Download Word doc</button>
+  </div>`;
+  const rl = (S.restLog||[]).slice().sort();
+  h += `<div class="card">
+    <div class="ex-head" style="margin-bottom:8px"><b style="font-family:var(--disp);font-size:16px;text-transform:uppercase;letter-spacing:.04em">Rest days</b><span class="sub num">${rl.length} logged</span></div>
+    <div class="sub" style="margin:-2px 0 10px">Log any day you rested. These appear in your report and export.</div>
+    ${rl.length ? `<div class="rl-list">${rl.map(d=>`<span class="rl-chip">${fmtDate(d)}<button data-rmrest="${d}" aria-label="Remove">✕</button></span>`).join("")}</div>` : `<div class="sub" style="margin-bottom:8px">None logged yet.</div>`}
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+      <input type="date" id="restDateIn" value="${todayStr()}" style="flex:1;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-family:var(--mono);font-size:15px">
+      <button class="btn small" id="addRestBtn" style="width:auto;padding:11px 20px">Add</button>
+    </div>
   </div>`;
   [...S.sessions].reverse().forEach(s=>{
     const m = META[s.workoutId];
@@ -1491,8 +1520,8 @@ function bind(){
         const lastW = lastArr && lastArr[s] ? parseFloat(lastArr[s].weight) : NaN;
         const curW = parseFloat(st.weight);
         if(!isNaN(curW) && !isNaN(lastW) && curW > lastW) prFloat(el);
-        // the ✓ is the one and only stopwatch trigger
-        startRest(parseInt(e,10), parseInt(s,10));
+        // the ✓ is the stopwatch trigger — but never inside a superset (no rest between/after)
+        if(!entry.superset) startRest(parseInt(e,10), parseInt(s,10));
       } else {
         // unchecking: cancel its running timer and clear its recorded rest
         const rt = S.active.restTimer;
@@ -1601,6 +1630,18 @@ function bind(){
   const docB = $("#docBtn");
   if(docB) docB.onclick = downloadDoc;
 
+  const addRest = $("#addRestBtn");
+  if(addRest) addRest.onclick = ()=>{
+    const d = $("#restDateIn").value;
+    if(!d){ toast("Pick a date first"); return; }
+    if(!S.restLog.includes(d)){ S.restLog.push(d); S.restLog.sort(); save(); queueSync(); render(); toast("Rest day logged"); }
+    else toast("That day's already logged");
+  };
+  document.querySelectorAll("[data-rmrest]").forEach(b=> b.onclick=()=>{
+    S.restLog = S.restLog.filter(x=>x!==b.dataset.rmrest);
+    save(); queueSync(); render();
+  });
+
   document.querySelectorAll(".sess").forEach(c=>{    c.onclick = e=>{
       if(e.target.dataset.delsess || e.target.dataset.editsess || e.target.dataset.resumesess) return;
       c.classList.toggle("open");
@@ -1660,6 +1701,7 @@ function startWorkout(wid){
     startedAt: Date.now(),
     entries: resolvedProgram(wid).map(({chosen:e, isFinisher})=>({
       name: e.name, reps: e.reps, rpe: e.rpe, note: e.note, fin: isFinisher||undefined,
+      superset: e.superset||undefined, supersetEnd: e.supersetEnd||undefined,
       sets: Array.from({length:e.sets}, ()=>({weight:"",reps:"",rpe:"",done:false}))
     }))
   };
@@ -2046,7 +2088,7 @@ async function gistFetch(path, opts={}){
   return res.json();
 }
 function payload(){
-  return JSON.stringify({program:S.program, pointer:S.pointer, cycleStart:S.cycleStart, cycleDone:S.cycleDone, restDay:S.restDay||null, lastCycle:S.lastCycle||null, lastReview:S.lastReview||null, checkins:S.checkins||{}, deleted:(S.deleted||[]).slice(-500), sessions:S.sessions, savedAt:S.savedAt}, null, 1);
+  return JSON.stringify({program:S.program, pointer:S.pointer, cycleStart:S.cycleStart, cycleDone:S.cycleDone, restDay:S.restDay||null, restLog:S.restLog||[], lastCycle:S.lastCycle||null, lastReview:S.lastReview||null, checkins:S.checkins||{}, deleted:(S.deleted||[]).slice(-500), sessions:S.sessions, savedAt:S.savedAt}, null, 1);
 }
 async function connectGist(){
   S.sync.token = $("#tokenIn").value.trim();
@@ -2130,6 +2172,7 @@ async function syncNow(announce){  if(!S.sync.token || !S.sync.gistId){ if(annou
       if(remote.lastCycle) S.lastCycle = remote.lastCycle;
       if(remote.lastReview) S.lastReview = remote.lastReview;
       S.checkins = Object.assign({}, S.checkins||{}, remote.checkins||{});
+      S.restLog = [...new Set([...(S.restLog||[]), ...(remote.restLog||[])])].sort();
       S.deleted = [...tomb];
       S.sessions = mergeSessions(S.sessions, remote.sessions, tomb);
       reconcileCycleAfterMerge(remote.cycleStart);
@@ -2138,6 +2181,7 @@ async function syncNow(announce){  if(!S.sync.token || !S.sync.gistId){ if(annou
     } else if(remote){
       const tomb = new Set([...(S.deleted||[]), ...(remote.deleted||[])]);
       S.checkins = Object.assign({}, remote.checkins||{}, S.checkins||{});
+      S.restLog = [...new Set([...(S.restLog||[]), ...(remote.restLog||[])])].sort();
       S.restDay = pickRestDay(S.restDay, remote.restDay);
       S.deleted = [...tomb];
       S.sessions = mergeSessions(S.sessions, remote.sessions||[], tomb);
@@ -2176,7 +2220,7 @@ function buildReportHTML(){
 
   let body = `<h1>Training History Report</h1>
   <p class="meta">Prepared ${new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"})} · Iron Log</p>
-  <p>This report covers <b>${sessions.length}</b> logged training ${sessions.length===1?"session":"sessions"} from ${longDate(first.date)} through ${longDate(lastS.date)}, comprising ${countLine}.</p>
+  <p>This report covers <b>${sessions.length}</b> logged training ${sessions.length===1?"session":"sessions"} from ${longDate(first.date)} through ${longDate(lastS.date)}, comprising ${countLine}.${(S.restLog&&S.restLog.length)?" Rest days taken: "+joinList(S.restLog.slice().sort().map(d=>longDate(d)))+".":""}</p>
   <hr>`;
 
   sessions.forEach(s=>{
@@ -2274,6 +2318,12 @@ function buildCSV(){
   const header = ["Exercise"];
   for(let i=1;i<=maxSets;i++) header.push("Set "+i);
   const rows = [header];
+  if(S.restLog && S.restLog.length){
+    S.restLog.slice().sort().forEach(d=>{
+      rows.push([d+" — REST DAY", ...Array(Math.max(0,maxSets)).fill("")]);
+    });
+    rows.push(Array(maxSets+1).fill(""));
+  }
   sessions.forEach(s=>{
     rows.push([s.date+" — "+META[s.workoutId].name.toUpperCase(), s.note||"", ...Array(Math.max(0,maxSets-1)).fill("")]);
     s.entries.forEach(e=>{
@@ -2356,6 +2406,7 @@ function importJSON(e){
       S.pointer = d.pointer||0;
       if(d.cycleStart) S.cycleStart = d.cycleStart;
       if(d.checkins) S.checkins = d.checkins;
+      if(Array.isArray(d.restLog)) S.restLog = d.restLog;
       S.sessions = d.sessions;
       recomputeCycle(false);
       save(); queueSync(); render(); toast("Imported ✓");
