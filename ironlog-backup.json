@@ -213,11 +213,12 @@
   "finisher": [
    {
     "name": "Cable Ab Crunch",
-    "sets": 2,
+    "sets": 1,
     "reps": "10-12",
     "rpe": "9-10",
     "weight": 150,
-    "note": ""
+    "note": "",
+    "superset": "abs"
    },
    {
     "name": "Leg Raises",
@@ -225,15 +226,102 @@
     "reps": "8-10",
     "rpe": "9-10",
     "weight": null,
-    "note": "bodyweight"
+    "note": "bodyweight",
+    "superset": "abs"
+   },
+   {
+    "name": "Cable Ab Crunch",
+    "sets": 1,
+    "reps": "10-12",
+    "rpe": "9-10",
+    "weight": 150,
+    "note": "",
+    "superset": "abs",
+    "supersetEnd": true
    }
   ]
  },
- "pointer": 3,
- "cycleStart": 1783899361472,
- "cycleDone": [
-  2,
-  1
+ "pointer": 4,
+ "cycleStart": 1784779200000,
+ "cycleDone": [],
+ "restDay": {
+  "date": "2026-07-22"
+ },
+ "restLog": [
+  "2026-07-14",
+  "2026-07-15"
+ ],
+ "lastCycle": {
+  "start": 1783899361472,
+  "end": 1784696380106
+ },
+ "lastReview": {
+  "cur": {
+   "vol": 88365,
+   "n": 7,
+   "perDay": {
+    "arms": 2,
+    "back": 1,
+    "chest": 2,
+    "shoulders": 1,
+    "legs": 1
+   },
+   "exTop": {
+    "Incline Dumbbell Curl": 25,
+    "Tricep Pushdown": 100,
+    "Preacher Curl": 25,
+    "Tricep Kickback": 30,
+    "Spider Curl": 25,
+    "Hammer Curl": 25,
+    "Cable Tricep Extension": 80,
+    "Cable Ab Crunch": 150,
+    "Leg Raises": 0,
+    "Lat Pulldown": 110,
+    "Mid Row": 130,
+    "Dumbbell RDL": 35,
+    "Cable Lat Prayer": 70,
+    "Dumbbell Bench Press": 40,
+    "Incline Dumbbell Bench Press": 40,
+    "Mid Cable Fly (on bench)": 40,
+    "Cable Chest Press (on bench)": 50,
+    "Guillotine Press": 30,
+    "Smith Machine Shoulder Press": 20,
+    "Alternating Cable Lateral Raise": 20,
+    "Cable Reverse Rear Delt Fly": 30,
+    "Leg Curl": 135,
+    "Leg Extension": 85,
+    "Hip Thrust": 70,
+    "Smith Machine Squat": 15,
+    "Standing Calf Raise (Smith)": 30,
+    "Chest Dips": 0
+   },
+   "avgDurMin": 107,
+   "avgFeel": 4.4
+  },
+  "prevVol": null,
+  "moved": [],
+  "stalled": [],
+  "when": 1784696380105
+ },
+ "checkins": {
+  "2026-07-15": {
+   "sleep": "8",
+   "energy": "6"
+  },
+  "2026-07-16": {
+   "energy": "6",
+   "sleep": "7"
+  },
+  "2026-07-20": {
+   "energy": "5"
+  },
+  "2026-07-21": {
+   "energy": "6",
+   "sleep": "7.5"
+  }
+ },
+ "deleted": [
+  "mrmrnu1cdzbyx"
  ],
  "sessions": [
   {
@@ -608,7 +696,959 @@
      ]
     }
    ]
+  },
+  {
+   "id": "mro9akot6fxmr",
+   "workoutId": "arms",
+   "date": "2026-07-16",
+   "startedAt": 1784251531326,
+   "finishedAt": 1784258038457,
+   "entries": [
+    {
+     "name": "Incline Dumbbell Curl",
+     "reps": "8-10",
+     "rpe": "7-8",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "10",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 162
+      },
+      {
+       "weight": "25",
+       "reps": "9",
+       "rpe": "9",
+       "done": true,
+       "rest": 160
+      },
+      {
+       "weight": "25",
+       "reps": "12",
+       "rpe": "9",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Tricep Pushdown",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "100",
+       "reps": "15",
+       "rpe": "8",
+       "done": true,
+       "rest": 226
+      },
+      {
+       "weight": "100",
+       "reps": "15",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 337
+      },
+      {
+       "weight": "100",
+       "reps": "13",
+       "rpe": "9",
+       "done": true,
+       "rest": 228
+      }
+     ]
+    },
+    {
+     "name": "Preacher Curl",
+     "reps": "8-10",
+     "rpe": "9",
+     "note": "single arm — alternate L/R each set",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "12",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 161
+      },
+      {
+       "weight": "25",
+       "reps": "8",
+       "rpe": "9",
+       "done": true,
+       "rest": 237
+      },
+      {
+       "weight": "25",
+       "reps": "11",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 374
+      }
+     ]
+    },
+    {
+     "name": "Tricep Kickback",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "30",
+       "reps": "12",
+       "rpe": "9",
+       "done": true,
+       "rest": 62
+      },
+      {
+       "weight": "30",
+       "reps": "10",
+       "rpe": "9",
+       "done": true,
+       "rest": 255
+      },
+      {
+       "weight": "30",
+       "reps": "11",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 202
+      }
+     ]
+    },
+    {
+     "name": "Spider Curl",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "20",
+       "reps": "9",
+       "rpe": "9",
+       "done": true,
+       "rest": 254
+      },
+      {
+       "weight": "20",
+       "reps": "9",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 314
+      },
+      {
+       "weight": "20",
+       "reps": "10",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 216
+      }
+     ]
+    },
+    {
+     "name": "Hammer Curl",
+     "reps": "8-10",
+     "rpe": "7-8",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "8",
+       "rpe": "9",
+       "done": true,
+       "rest": 57
+      },
+      {
+       "weight": "25",
+       "reps": "8",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 134
+      },
+      {
+       "weight": "25",
+       "reps": "9",
+       "rpe": "10",
+       "done": true,
+       "rest": 234
+      }
+     ]
+    },
+    {
+     "name": "Cable Tricep Extension",
+     "reps": "10-15",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "80",
+       "reps": "12",
+       "rpe": "7",
+       "done": true,
+       "rest": 222
+      },
+      {
+       "weight": "80",
+       "reps": "15",
+       "rpe": "8",
+       "done": true,
+       "rest": 117
+      },
+      {
+       "weight": "80",
+       "reps": "11",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 374
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "17",
+       "rpe": "8",
+       "done": true
+      },
+      {
+       "weight": "150",
+       "reps": "14",
+       "rpe": "9",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Leg Raises",
+     "reps": "8-10",
+     "rpe": "9-10",
+     "note": "bodyweight",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "",
+       "reps": "19",
+       "rpe": "8.5",
+       "done": true
+      }
+     ]
+    }
+   ],
+   "note": "",
+   "feel": 4
+  },
+  {
+   "id": "mrr7ql34h7xv8",
+   "workoutId": "chest",
+   "date": "2026-07-18",
+   "startedAt": 1784430317633,
+   "finishedAt": 1784437393939,
+   "entries": [
+    {
+     "name": "Dumbbell Bench Press",
+     "reps": "8-10",
+     "rpe": "9",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "40",
+       "reps": "12",
+       "rpe": "8",
+       "done": true,
+       "rest": 283
+      },
+      {
+       "weight": "40",
+       "reps": "12",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 613
+      },
+      {
+       "weight": "40",
+       "reps": "12",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 373
+      }
+     ]
+    },
+    {
+     "name": "Incline Dumbbell Bench Press",
+     "reps": "8-12",
+     "rpe": "8-9",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "35",
+       "reps": "10",
+       "rpe": "9",
+       "done": true,
+       "rest": 360
+      },
+      {
+       "weight": "35",
+       "reps": "10",
+       "rpe": "9",
+       "done": true,
+       "rest": 656
+      },
+      {
+       "weight": "35",
+       "reps": "10",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 635
+      }
+     ]
+    },
+    {
+     "name": "Mid Cable Fly (on bench)",
+     "reps": "10-12",
+     "rpe": "7-8",
+     "note": "",
+     "sets": [
+      {
+       "weight": "30",
+       "reps": "13",
+       "rpe": "8",
+       "done": true,
+       "rest": 271
+      },
+      {
+       "weight": "40",
+       "reps": "12",
+       "rpe": "9",
+       "done": true,
+       "rest": 409
+      },
+      {
+       "weight": "40",
+       "reps": "14",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 305
+      }
+     ]
+    },
+    {
+     "name": "Cable Chest Press (on bench)",
+     "reps": "10-12",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "40",
+       "reps": "15",
+       "rpe": "7.5",
+       "done": true,
+       "rest": 247
+      },
+      {
+       "weight": "50",
+       "reps": "9",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 372
+      },
+      {
+       "weight": "50",
+       "reps": "12",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 243
+      }
+     ]
+    },
+    {
+     "name": "Guillotine Press",
+     "reps": "8-10",
+     "rpe": "",
+     "note": "",
+     "sets": [
+      {
+       "weight": "30",
+       "reps": "11",
+       "rpe": "8",
+       "done": true,
+       "rest": 82
+      },
+      {
+       "weight": "30",
+       "reps": "11",
+       "rpe": "9",
+       "done": true,
+       "rest": 232
+      },
+      {
+       "weight": "30",
+       "reps": "14",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 713
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "20",
+       "rpe": "8.5",
+       "done": true
+      },
+      {
+       "weight": "150",
+       "reps": "8",
+       "rpe": "9",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Leg Raises",
+     "reps": "8-10",
+     "rpe": "9-10",
+     "note": "bodyweight",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "",
+       "reps": "23",
+       "rpe": "8.5",
+       "done": true
+      }
+     ]
+    }
+   ],
+   "note": "Was helping train something so rests were long",
+   "feel": 5
+  },
+  {
+   "id": "mrsgfomitn80a",
+   "workoutId": "shoulders",
+   "date": "2026-07-19",
+   "startedAt": 1784505391723,
+   "finishedAt": 1784512274062,
+   "entries": [
+    {
+     "name": "Smith Machine Shoulder Press",
+     "reps": "8-10",
+     "rpe": "9",
+     "note": "10 lb plate each side",
+     "sets": [
+      {
+       "weight": "15",
+       "reps": "15",
+       "rpe": "8",
+       "done": true,
+       "rest": 85
+      },
+      {
+       "weight": "20",
+       "reps": "13",
+       "rpe": "9",
+       "done": true,
+       "rest": 207
+      },
+      {
+       "weight": "20",
+       "reps": "15",
+       "rpe": "10",
+       "done": true,
+       "rest": 5
+      }
+     ]
+    },
+    {
+     "name": "Alternating Cable Lateral Raise",
+     "reps": "8-10",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "20",
+       "reps": "18",
+       "rpe": "8",
+       "done": true,
+       "rest": 327
+      },
+      {
+       "weight": "20",
+       "reps": "14",
+       "rpe": "9",
+       "done": true,
+       "rest": 217
+      },
+      {
+       "weight": "20",
+       "reps": "17",
+       "rpe": "10",
+       "done": true,
+       "rest": 587
+      }
+     ]
+    },
+    {
+     "name": "Cable Reverse Rear Delt Fly",
+     "reps": "8-10",
+     "rpe": "8-10",
+     "note": "",
+     "sets": [
+      {
+       "weight": "30",
+       "reps": "12",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 135
+      },
+      {
+       "weight": "30",
+       "reps": "14",
+       "rpe": "9",
+       "done": true,
+       "rest": 216
+      },
+      {
+       "weight": "30",
+       "reps": "15",
+       "rpe": "10",
+       "done": true,
+       "rest": 2098
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "19",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 4
+      },
+      {
+       "weight": "150",
+       "reps": "12",
+       "rpe": "9",
+       "done": true,
+       "rest": 6
+      }
+     ]
+    },
+    {
+     "name": "Leg Raises",
+     "reps": "8-10",
+     "rpe": "9-10",
+     "note": "bodyweight",
+     "fin": true,
+     "sets": [
+      {
+       "weight": "",
+       "reps": "25",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    }
+   ],
+   "note": "Was training someone again so rests were long, the 30 mins rest wasn’t true, I was doing some bench press and forearm exercises",
+   "feel": 5
+  },
+  {
+   "id": "mrtzvwf1rt9m9",
+   "workoutId": "legs",
+   "date": "2026-07-20",
+   "startedAt": 1784598527198,
+   "finishedAt": 1784602790627,
+   "entries": [
+    {
+     "name": "Leg Curl",
+     "reps": "8-10",
+     "rpe": "7-8",
+     "note": "",
+     "sets": [
+      {
+       "weight": "100",
+       "reps": "20",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 384
+      },
+      {
+       "weight": "135",
+       "reps": "14",
+       "rpe": "10",
+       "done": true,
+       "rest": 235
+      }
+     ]
+    },
+    {
+     "name": "Leg Extension",
+     "reps": "8-10",
+     "rpe": "7-8",
+     "note": "",
+     "sets": [
+      {
+       "weight": "85",
+       "reps": "10",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 570
+      },
+      {
+       "weight": "85",
+       "reps": "10",
+       "rpe": "10",
+       "done": true,
+       "rest": 312
+      }
+     ]
+    },
+    {
+     "name": "Hip Thrust",
+     "reps": "8-10",
+     "rpe": "7-8",
+     "note": "",
+     "sets": [
+      {
+       "weight": "55",
+       "reps": "15",
+       "rpe": "7.5",
+       "done": true,
+       "rest": 208
+      },
+      {
+       "weight": "70",
+       "reps": "13",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 504
+      }
+     ]
+    },
+    {
+     "name": "Smith Machine Squat",
+     "reps": "5-8",
+     "rpe": "9-10",
+     "note": "25 lb plate each side",
+     "sets": [
+      {
+       "weight": "15",
+       "reps": "11",
+       "rpe": "9",
+       "done": true,
+       "rest": 182
+      },
+      {
+       "weight": "15",
+       "reps": "12",
+       "rpe": "10",
+       "done": true,
+       "rest": 392
+      }
+     ]
+    },
+    {
+     "name": "Standing Calf Raise (Smith)",
+     "reps": "10-12",
+     "rpe": "8-9",
+     "note": "15 lb each side",
+     "sets": [
+      {
+       "weight": "25",
+       "reps": "16",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 146
+      },
+      {
+       "weight": "30",
+       "reps": "14",
+       "rpe": "10",
+       "done": true,
+       "rest": 231
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "superset": "abs",
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "26",
+       "rpe": "8.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Leg Raises",
+     "reps": "8-10",
+     "rpe": "9-10",
+     "note": "bodyweight",
+     "fin": true,
+     "superset": "abs",
+     "sets": [
+      {
+       "weight": "",
+       "reps": "23",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "superset": "abs",
+     "supersetEnd": true,
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "11",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    }
+   ],
+   "note": "Felt very tired before but once started gained lots of energy",
+   "feel": 4
+  },
+  {
+   "id": "mrvf458dr5rd9",
+   "workoutId": "chest",
+   "date": "2026-07-21",
+   "startedAt": 1784684572285,
+   "finishedAt": 1784696380104,
+   "entries": [
+    {
+     "name": "Dumbbell Bench Press",
+     "reps": "8-10",
+     "rpe": "9",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "40",
+       "reps": "14",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 712
+      },
+      {
+       "weight": "40",
+       "reps": "11",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 462
+      },
+      {
+       "weight": "40",
+       "reps": "9",
+       "rpe": "10",
+       "done": true,
+       "rest": 5
+      }
+     ]
+    },
+    {
+     "name": "Incline Dumbbell Bench Press",
+     "reps": "8-12",
+     "rpe": "8-9",
+     "note": "per dumbbell",
+     "sets": [
+      {
+       "weight": "40",
+       "reps": "10",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 767
+      },
+      {
+       "weight": "40",
+       "reps": "9",
+       "rpe": "10",
+       "done": true,
+       "rest": 2133
+      },
+      {
+       "weight": "40",
+       "reps": "9",
+       "rpe": "10",
+       "done": true,
+       "rest": 332
+      }
+     ]
+    },
+    {
+     "name": "Mid Cable Fly (on bench)",
+     "reps": "10-12",
+     "rpe": "7-8",
+     "note": "",
+     "sets": [
+      {
+       "weight": "40",
+       "reps": "14",
+       "rpe": "9",
+       "done": true,
+       "rest": 410
+      },
+      {
+       "weight": "40",
+       "reps": "13",
+       "rpe": "10",
+       "done": true,
+       "rest": 229
+      },
+      {
+       "weight": "40",
+       "reps": "10",
+       "rpe": "10",
+       "done": true,
+       "rest": 185
+      }
+     ]
+    },
+    {
+     "name": "Cable Chest Press (on bench)",
+     "reps": "10-12",
+     "rpe": "8-9",
+     "note": "",
+     "sets": [
+      {
+       "weight": "50",
+       "reps": "12",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 232
+      },
+      {
+       "weight": "50",
+       "reps": "12",
+       "rpe": "8.5",
+       "done": true,
+       "rest": 238
+      },
+      {
+       "weight": "50",
+       "reps": "10",
+       "rpe": "10",
+       "done": true,
+       "rest": 325
+      }
+     ]
+    },
+    {
+     "name": "Chest Dips",
+     "reps": "5-8",
+     "rpe": "",
+     "note": "bodyweight — log added lbs if weighted",
+     "sets": [
+      {
+       "weight": "",
+       "reps": "8",
+       "rpe": "9",
+       "done": true,
+       "rest": 172
+      },
+      {
+       "weight": "",
+       "reps": "7",
+       "rpe": "10",
+       "done": true,
+       "rest": 450
+      },
+      {
+       "weight": "",
+       "reps": "6",
+       "rpe": "9.5",
+       "done": true,
+       "rest": 1041
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "superset": "abs",
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "14",
+       "rpe": "7.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Leg Raises",
+     "reps": "8-10",
+     "rpe": "9-10",
+     "note": "bodyweight",
+     "fin": true,
+     "superset": "abs",
+     "sets": [
+      {
+       "weight": "",
+       "reps": "26",
+       "rpe": "9.5",
+       "done": true
+      }
+     ]
+    },
+    {
+     "name": "Cable Ab Crunch",
+     "reps": "10-12",
+     "rpe": "9-10",
+     "note": "",
+     "fin": true,
+     "superset": "abs",
+     "supersetEnd": true,
+     "sets": [
+      {
+       "weight": "150",
+       "reps": "10",
+       "rpe": "10",
+       "done": true
+      }
+     ]
+    }
+   ],
+   "note": "Was training someone again so rests were long in the first half or so, in between the ab finisher I did intense smith machine bench press starting with 45s on a 25 bar than 55s than back to 35 I did multiple sets with all except I think 55",
+   "feel": 4
   }
  ],
- "savedAt": 1783994481900
+ "savedAt": 1784853459475
 }
